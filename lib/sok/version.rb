@@ -1,3 +1,3 @@
-module Sok
+module Kabu
   VERSION = "0.1.0"
 end
