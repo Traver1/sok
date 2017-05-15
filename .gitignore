@@ -10,6 +10,7 @@
 /vendor/
 /db/seeds.rb
 /db/*.sqlite3
+/data/
 
 # rspec failure tracking
 .rspec_status
