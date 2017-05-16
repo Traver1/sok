@@ -81,6 +81,7 @@ module Kabu
         cumus = Soks[*Record.cumu_profit(records)]
         dates = Soks[*records.map{|r| r.to}]
         Numo.gnuplot do
+          reset
           set terminal: 'jpeg'
           set output:  file_path
           set yrange: cumus.yrange
@@ -100,7 +101,7 @@ module Kabu
         grid_size = 20
         x,histgram = Record.profit_histgram(records, grid_size)
 
-        count = 10
+        count = [10, records.length].min
         step = x.length / count
         step = 1 if step == 0
         xlabels = []
@@ -110,6 +111,8 @@ module Kabu
         xtics = "(#{xlabels.join(',')})"
 
         Numo.gnuplot do
+          reset
+          set style: :fill, solid: :border, lc: "'black'"
           set terminal: 'jpeg'
           set output:  file_path
           set yrange: histgram.yrange
@@ -119,7 +122,7 @@ module Kabu
           set bmargin: true
           set xtics: xtics
           set grid: true
-          plot [grid_size.times.to_a, histgram.y, with: :impulse, lt: 8, notitle: true]
+          plot [grid_size.times.to_a, histgram.y, with: :boxes, lw: 2, lc: "'light-cyan'", notitle: true]
           unset logscale: :y
         end
       end
@@ -130,7 +133,7 @@ module Kabu
       def plot(records, file_path)
         months, sums = Record.monthly_profit(records)
 
-        count = 5
+        count = [5, records.length].min
         step = months.length / count
         step = 1 if step == 0
         xlabels = []
@@ -140,6 +143,9 @@ module Kabu
         xtics = "(#{xlabels.join(',')})"
 
         Numo.gnuplot do
+          reset
+          set style: :fill, solid: :border, lc: "'black'"
+          set boxwidth: 0.7, relative: true
           set terminal: 'jpeg'
           set output:  file_path
           set yrange: sums.yrange
@@ -148,7 +154,7 @@ module Kabu
           set bmargin: true
           set xtics: xtics
           set grid: true
-          plot [months.length.times.to_a, sums.y, with: :impulse, lt: 8, notitle: true]
+          plot [months.length.times.to_a, sums.y, with: :boxes, lw: 2, lc: "'light-cyan'", notitle: true]
         end
       end
     end
