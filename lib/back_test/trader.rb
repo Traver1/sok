@@ -26,6 +26,7 @@ module Kabu
       each_positions(actions) do |code, action, position|
         if (position.sell? and action.buy?) or
           (position.buy? and action.sell?)
+          next if action.volume <= 0
           contracted = [position.volume, action.volume].min
           if position.volume == contracted
             action.volume -= contracted
