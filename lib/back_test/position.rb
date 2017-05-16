@@ -22,6 +22,12 @@ module Kabu
       self.is_a? Sell
     end
 
+    def self.total_gain(positions, price)
+      positions.inject(0) do |sum,position|
+        sum += position.gain(price, position.volume)
+      end
+    end
+
     class Buy < Position
       def gain(price, volume)
         raise 'over position volume' if volume > @volume
