@@ -5,11 +5,11 @@ describe Kabu::Record do
   let(:records) do
     records = []
     records << Kabu::Record.new(
-      1305, 100, 2, 100, Date.parse('20160201'), Date.parse('20160203'))
+      1305, 100, 2, 100, Date.parse('20160201'), Date.parse('20160203'), :buy)
     records << Kabu::Record.new(
-      1305, 300, 2, 100, Date.parse('20160203'), Date.parse('20160205'))
+      1305, 300, 2, 100, Date.parse('20160203'), Date.parse('20160205'), :buy)
     records << Kabu::Record.new(
-      1305, -200, 10, 100, Date.parse('20160207'), Date.parse('20160219'))
+      1305, -200, 10, 100, Date.parse('20160207',), Date.parse('20160219'), :buy)
   end
 
   describe '#net_income' do
@@ -75,11 +75,11 @@ describe Kabu::Record do
   describe '#max_series_of_wins' do
     before do
       records << Kabu::Record.new(
-        1305, 100, 2, 100, Date.parse('20160219'), Date.parse('20160221'))
+        1305, 100, 2, 100, Date.parse('20160219'), Date.parse('20160221'), :buy)
       records << Kabu::Record.new(
-        1305, -100, 2, 100, Date.parse('20160221'), Date.parse('20160223'))
+        1305, -100, 2, 100, Date.parse('20160221'), Date.parse('20160223'), :buy)
       records << Kabu::Record.new(
-        1305, -200, 1, 100, Date.parse('20160227'), Date.parse('20160228'))
+        1305, -200, 1, 100, Date.parse('20160227'), Date.parse('20160228'), :buy)
     end
     it 'should calc correctly' do
       expect(Kabu::Record.max_series_of_wins  records).to eq(2)
@@ -89,13 +89,13 @@ describe Kabu::Record do
   describe '#max_series_of_looses' do
     before do
       records << Kabu::Record.new(
-        1305, 100, 2, 100, Date.parse('20160219'), Date.parse('20160221'))
+        1305, 100, 2, 100, Date.parse('20160219'), Date.parse('20160221'), :buy)
       records << Kabu::Record.new(
-        1305, -100, 2, 100, Date.parse('20160221'), Date.parse('20160223'))
+        1305, -100, 2, 100, Date.parse('20160221'), Date.parse('20160223'), :buy)
       records << Kabu::Record.new(
-        1305, -200, 1, 100, Date.parse('20160227'), Date.parse('20160228'))
+        1305, -200, 1, 100, Date.parse('20160227'), Date.parse('20160228'), :buy)
       records << Kabu::Record.new(
-        1305, -200, 2, 100, Date.parse('20160228'), Date.parse('20160229'))
+        1305, -200, 2, 100, Date.parse('20160228'), Date.parse('20160229'), :buy)
     end
     it 'should calc correctly' do
       expect(Kabu::Record.max_series_of_looses  records).to eq(3)
@@ -117,13 +117,13 @@ describe Kabu::Record do
   describe '#max_drow_down' do
     before do
       records << Kabu::Record.new(
-        1305, 100, 2, 100, Date.parse('20160219'), Date.parse('20160221'))
+        1305, 100, 2, 100, Date.parse('20160219'), Date.parse('20160221'), :buy)
       records << Kabu::Record.new(
-        1305, -100, 2, 100, Date.parse('20160221'), Date.parse('20160223'))
+        1305, -100, 2, 100, Date.parse('20160221'), Date.parse('20160223'), :buy)
       records << Kabu::Record.new(
-        1305, -200, 1, 100, Date.parse('20160227'), Date.parse('20160228'))
+        1305, -200, 1, 100, Date.parse('20160227'), Date.parse('20160228'), :buy)
       records << Kabu::Record.new(
-        1305, -200, 2, 100, Date.parse('20160228'), Date.parse('20160229'))
+        1305, -200, 2, 100, Date.parse('20160228'), Date.parse('20160229'), :buy)
     end
     it 'should calc correctly' do
       expect(Kabu::Record.max_drow_down  records).to eq(-500)
@@ -143,13 +143,13 @@ describe Kabu::Record do
   describe '#histgram' do
     before do
       records << Kabu::Record.new(
-        1305, 100, 2, 100, Date.parse('20160219'), Date.parse('20160221'))
+        1305, 100, 2, 100, Date.parse('20160219'), Date.parse('20160221'), :buy)
       records << Kabu::Record.new(
-        1305, -100, 2, 100, Date.parse('20160221'), Date.parse('20160223'))
+        1305, -100, 2, 100, Date.parse('20160221'), Date.parse('20160223'), :buy)
       records << Kabu::Record.new(
-        1305, -200, 1, 100, Date.parse('20160227'), Date.parse('20160228'))
+        1305, -200, 1, 100, Date.parse('20160227'), Date.parse('20160228'), :buy)
       records << Kabu::Record.new(
-        1305, -200, 2, 100, Date.parse('20160228'), Date.parse('20160229'))
+        1305, -200, 2, 100, Date.parse('20160228'), Date.parse('20160229'), :buy)
     end
     it 'should calc correctly' do
       x,histgram = Kabu::Record.profit_histgram(records,2)
@@ -165,13 +165,13 @@ describe Kabu::Record do
   describe '#monthly_profit' do
     before do
       records << Kabu::Record.new(
-        1305, 100, 2, 100, Date.parse('20160219'), Date.parse('20160321'))
+        1305, 100, 2, 100, Date.parse('20160219'), Date.parse('20160321'), :buy)
       records << Kabu::Record.new(
-        1305, -100, 2, 100, Date.parse('20160321'), Date.parse('20160323'))
+        1305, -100, 2, 100, Date.parse('20160321'), Date.parse('20160323'), :buy)
       records << Kabu::Record.new(
-        1305, -200, 1, 100, Date.parse('20160527'), Date.parse('20160528'))
+        1305, -200, 1, 100, Date.parse('20160527'), Date.parse('20160528'), :buy)
       records << Kabu::Record.new(
-        1305, -200, 2, 100, Date.parse('20160628'), Date.parse('20160629'))
+        1305, -200, 2, 100, Date.parse('20160628'), Date.parse('20160629'), :buy)
     end
     it 'should calc correctly' do
       months, sums = Kabu::Record.monthly_profit(records)

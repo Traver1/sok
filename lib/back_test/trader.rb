@@ -37,7 +37,8 @@ module Kabu
           @records << Record.new( code,
             position.gain(action.price, contracted),
             position.term, contracted,
-            position.date, action.date)
+            position.date, action.date,
+            position.buy? ? :buy : :sell )
         end
       end
       @positions -= closesd

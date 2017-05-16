@@ -1,14 +1,15 @@
 module Kabu
   class Record
-    attr_accessor :code, :profit, :term, :volume, :from, :to
+    attr_accessor :code, :profit, :term, :volume, :from, :to, :position
 
-    def initialize(code, profit, term, volume, from, to)
+    def initialize(code, profit, term, volume, from, to, position)
       @code = code
       @profit = profit
       @term = term
       @volume = volume
       @from = from
       @to = to
+      @position = position
     end
 
     def self.net_income(records)
