@@ -114,5 +114,13 @@ module Kabu
       file_path = dir + '/monthly_profit.jpeg'
       Chart::MonthlyProfit.new.plot(@records, file_path)
     end
+
+    def plot_recorded_chart(dir)
+      FileUtils.mkdir_p dir
+      @records.each do |record|
+        file_path = dir + "/#{record.code}_#{record.from.strftime('%Y%m%d')}_#{record.to.strftime('%Y%m%d')}.jpeg"
+        Chart::RecordedChart.new.plot(record, file_path)
+      end
+    end
   end
 end
