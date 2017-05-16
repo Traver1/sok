@@ -31,6 +31,28 @@ module Kabu
       end
     end
 
+    def self.cut_off_tail(*sokses)
+      tmp = []
+      sokses.each do |soks|
+        if soks.any? and soks[0].is_a? Soks
+          soks.each{|sok| tmp << sok}
+        else
+          tmp << soks
+        end
+      end
+
+      min = tmp.map {|soks| soks.length}.min
+      sokses.map do |soks|
+        if soks.any? and soks[0].is_a? Soks
+          soks.map do |sok|
+            sok[-min..-1]
+          end
+        else
+          soks[-min..-1]
+        end
+      end
+    end
+
     def split_up_and_down_sticks
       up_stick ,down_stick = Kabu::Soks.new, Kabu::Soks.new
       self.transpose.each do |o,h,l,c|
@@ -55,7 +77,9 @@ module Kabu
 
     def xtics(count: 10, visible: true)
       step = (length.to_f / count).to_i
+      step = 1 if step == 0
       items = 1.step(length-1,step).map do |i|
+
         if visible 
           "\"#{self[i].strftime('%m/%d')}\" #{i}"
         else
