@@ -99,7 +99,9 @@ module Kabu
 
     def yrange
       tmp = flatten.select{|v| v.integer? or  v.finite?}
-      (tmp.min*0.98..tmp.max*1.02)
+      min = tmp.min > 0 ? tmp.min*0.98 : tmp.min*1.02
+      max = tmp.max > 0 ? tmp.max*1.02 : tmp.max*0.98
+      (min..max)
     end
 
     def x
