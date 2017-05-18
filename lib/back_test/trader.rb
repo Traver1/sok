@@ -1,12 +1,13 @@
 module Kabu
   class Trader
 
-    attr_accessor :records, :positions
+    attr_accessor :records, :positions, :percent
 
     def initialize
       @positions = []
       @records = []
       @cost = 20
+      @percent = false
     end
 
     def receive(actions)
@@ -36,7 +37,7 @@ module Kabu
             action.volume = 0
           end
           @records << Record.new( code,
-            position.gain(action.price, contracted),
+            position.gain(action.price, contracted, @percent),
             position.term, contracted,
             position.date, action.date,
             position.buy? ? :buy : :sell )
