@@ -31,7 +31,8 @@ module Kabu
     end
 
     def self.profit_factor(records)
-      Record.profit(records) / Record.loss(records).abs
+      los = Record.loss(records).abs
+      los > 0 ? Record.profit(records) / los : nil
     end
 
     def self.max_profit(records)
@@ -94,6 +95,10 @@ module Kabu
         prev = record.profit
       end
       max
+    end
+
+    def self.average(records)
+      self.net_income(records) / records.length
     end
 
     def self.average_posess_term_of_win(records)
