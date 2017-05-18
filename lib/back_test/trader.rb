@@ -71,35 +71,41 @@ module Kabu
     end
 
     def summary
-      net_income = Record.net_income(@records)
-      profit = Record.profit(@records)
-      loss = Record.loss(@records)
-      profit_factor = Record.profit_factor(@records)
-      max_profit = Record.max_profit(@records)
-      max_loss = Record.max_loss(@records)
-      trades = Record.trades(@records)
-      wins = Record.wins(@records)
-      looses = Record.looses(@records)
-      win_rate = Record.win_rate(@records)
-      max_series_of_wins = Record.max_series_of_wins(@records)
-      max_series_of_looses = Record.max_series_of_looses(@records)
-      average_posess_term_of_win = Record.average_posess_term_of_win(@records)
-      average_posess_term_of_loose = Record.average_posess_term_of_loose(@records)
-      max_drow_down = Record.max_drow_down(@records)
+      if @records.any?
+        net_income = Record.net_income(@records)
+        profit = Record.profit(@records)
+        loss = Record.loss(@records)
+        profit_factor = Record.profit_factor(@records)
+        max_profit = Record.max_profit(@records)
+        max_loss = Record.max_loss(@records)
+        trades = Record.trades(@records)
+        wins = Record.wins(@records)
+        looses = Record.looses(@records)
+        win_rate = Record.win_rate(@records)
+        max_series_of_wins = Record.max_series_of_wins(@records)
+        max_series_of_looses = Record.max_series_of_looses(@records)
+        average_posess_term_of_win = Record.average_posess_term_of_win(@records)
+        average_posess_term_of_loose = Record.average_posess_term_of_loose(@records)
+        max_drow_down = Record.max_drow_down(@records)
 
-      puts "======================================================"
-      puts "net income:               #{net_income}"
-      puts "profit | loss:            #{profit}    | #{loss}"
-      puts "pf:                       #{profit_factor.round(1)}"
-      puts "max profit | max loss:    #{max_profit}     | #{max_loss}"
-      puts "trades | wins | looses:   #{trades}     | #{wins}     | #{looses}"
-      puts "wins{%}                   #{(win_rate * 100).round(1)}"
-      puts "max series of wins:       #{max_series_of_wins}"
-      puts "max series of looses:     #{max_series_of_looses}"
-      puts "average span{win}:        #{average_posess_term_of_win}"
-      puts "average span{loose}:      #{average_posess_term_of_loose}"
-      puts "max drow down:            #{max_drow_down}"
-      puts "======================================================"
+        puts "======================================================"
+        puts "net income:               #{net_income}"
+        puts "profit | loss:            #{profit}    | #{loss}"
+        puts "pf:                       #{profit_factor.round(1)}"
+        puts "max profit | max loss:    #{max_profit}     | #{max_loss}"
+        puts "trades | wins | looses:   #{trades}     | #{wins}     | #{looses}"
+        puts "wins{%}                   #{(win_rate * 100).round(1)}"
+        puts "max series of wins:       #{max_series_of_wins}"
+        puts "max series of looses:     #{max_series_of_looses}"
+        puts "average span{win}:        #{average_posess_term_of_win}"
+        puts "average span{loose}:      #{average_posess_term_of_loose}"
+        puts "max drow down:            #{max_drow_down}"
+        puts "======================================================"
+      else
+        puts "======================================================"
+        puts "no trade"
+        puts "======================================================"
+      end
       puts
     end
 
