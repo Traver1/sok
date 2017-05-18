@@ -5,7 +5,11 @@ module Kabu
     validates :code, presence: true, uniqueness: {scope: :market}
 
     def to_s
-      "#{code}-#{market}"
+      if market == " "
+        code
+      else
+        "#{code}-#{market}"
+      end
     end
   end
 end

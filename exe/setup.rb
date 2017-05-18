@@ -15,3 +15,13 @@ File.open(output_file_path, 'w') do |file|
   end
 end
 
+data =
+  Kabu::KDb.read_indecies.map do |code|
+    [code, " "]
+  end
+
+File.open(output_file_path, 'a') do |file|
+  data.each do |code, market|
+    file << "Kabu::Company.new(code: '#{code}', market: '#{market}').save\n"
+  end
+end

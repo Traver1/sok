@@ -7,8 +7,7 @@ if ARGV[0].nil? or ARGV[1].nil?
 end
 
 company = Kabu::Company.find_by_code ARGV[0]
-
-raise 'unexists code in your database:' + ARGV[0] if company.nil? 
+company = ARGV[0] if company.nil? 
 
 soks = 
   Kabu::KDb.download_annualy_csv(company, ARGV[1]).map do |hash|
