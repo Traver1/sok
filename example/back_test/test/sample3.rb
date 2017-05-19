@@ -18,7 +18,7 @@ class Sample1Strategy
     when '20160510'
       Action::Sell.new(code ,date, close, 1)
     else
-      Action::None.new(code)
+      Action::None.new(code,close)
     end
   end
 end

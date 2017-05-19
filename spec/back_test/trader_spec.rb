@@ -59,7 +59,7 @@ describe Kabu::Trader do
     end
 
     let(:none_action) do
-      Kabu::Action::None.new(1305)
+      Kabu::Action::None.new(1305, 1000)
     end
     context 'buy action' do
       let(:trader) {Kabu::Trader.new}

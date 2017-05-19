@@ -14,11 +14,20 @@ module Kabu
       contract_to_current_position actions
       increese_term
       contract_remain actions
+      update_mfe actions
     end
 
     def increese_term
       @positions.each do |position|
         position.term += 1
+      end
+    end
+
+    def update_mfe(actions)
+      each_positions(actions) do |code, action, position|
+        if action.none?
+          position.update_mfe(action.price, @percent)
+        end
       end
     end
 

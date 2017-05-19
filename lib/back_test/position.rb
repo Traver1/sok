@@ -8,6 +8,8 @@ module Kabu
       @volume = volume
       @price = price
       @term = 1
+      @max = 0
+      @min = 0
     end
 
     def stay_hold
@@ -26,6 +28,12 @@ module Kabu
       positions.inject(0) do |sum,position|
         sum += position.gain(price, position.volume, percent)
       end
+    end
+
+    def update_mfe(price, percent)
+      g = gain(price,@volume,percent)
+      @max = [g, @max].max
+      @min = [g, @min].max
     end
 
     class Buy < Position

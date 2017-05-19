@@ -23,13 +23,13 @@ class Sma65Cc3
       if is_sell
         Action::Sell.new(code,date,open,2)
       else
-        Action::None.new(code)
+        Action::None.new(code,open)
       end
     elsif not position.nil? and position.sell?
       if is_buy
         Action::Buy.new(code,date,open,2)
       else
-        Action::None.new(code)
+        Action::None.new(code,open)
       end
     else
       if is_buy
@@ -37,7 +37,7 @@ class Sma65Cc3
       elsif is_sell
         Action::Sell.new(code,date,open,1)
       else
-        Action::None.new(code)
+        Action::None.new(code,open)
       end
     end
   end

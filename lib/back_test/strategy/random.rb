@@ -14,13 +14,13 @@ module Kabu
             if rv > 0.95
               Action::Sell.new(code, date, close, 1) 
             else
-              Action::None.new(code)
+              Action::None.new(code, close)
             end
           when position.sell?
             if rv > 0.95
               Action::Buy.new(code, date, close, 1) 
             else
-              Action::None.new(code)
+              Action::None.new(code, close)
             end
           end
         else
@@ -29,7 +29,7 @@ module Kabu
           elsif rv > 0.9
             Action::Buy.new(code, date, close, 1) 
           else
-            Action::None.new(code)
+            Action::None.new(code, close)
           end
         end
       end

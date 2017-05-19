@@ -23,13 +23,13 @@ class Sma65Cc3
       if position.term >= @n
         Action::Sell.new(code,date,open,1)
       else
-        Action::None.new(code)
+        Action::None.new(code,open)
       end
     else
       if is_buy
         Action::Buy.new(code,date,open,1)
       else
-        Action::None.new(code)
+        Action::None.new(code,open)
       end
     end
   end

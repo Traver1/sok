@@ -1,6 +1,6 @@
 module Kabu
   class Action
-    attr_accessor :code, :date, :price, :volume
+    attr_accessor :code, :date, :price, :volume 
 
     def initialize(code, date, price, volume)
       @code = code
@@ -30,8 +30,9 @@ module Kabu
     end
 
     class None < Action
-      def initialize(code)
+      def initialize(code, price)
         @code = code
+        @price = price
       end
     end
   end
