@@ -1,6 +1,6 @@
 module Kabu
   class Record
-    attr_accessor :code, :profit, :term, :volume, :from, :to, :position
+    attr_accessor :code, :profit, :term, :volume, :from, :to, :position, :max, :min
 
     def initialize(code, profit, term, volume, from, to, position)
       @code = code
@@ -136,27 +136,7 @@ module Kabu
 
     def self.profit_histgram(records, grid_size=20)
       profits = records.map{|r| r.profit}
-      max = profits.max
-      min = profits.min
-      step = (max-min)/grid_size
-      histgram = Soks.new
-      grid_size.times { |i| histgram[i] = Float::NAN}
-      profits.each do |p|
-        if p.positive?
-          grid = ((p - min -  step * 0.1)/step).to_i
-        else
-          grid = ((p - min +  step * 0.1)/step).to_i
-        end
-        if histgram[grid].is_a?(Float) and histgram[grid].nan?
-          histgram[grid] = 0 
-        end
-        histgram[grid] += 1
-      end
-      x = Soks.new
-      grid_size.times do |i|
-        x << i*step + min
-      end
-      [x,histgram]
+      Record.histgram profits, grid_size
     end
 
     def self.monthly_profit(records)
@@ -169,6 +149,37 @@ module Kabu
         sums << recs.inject(0) {|sum, r| sum += r.profit}
       end
       [months, sums]
+    end
+
+    def self.best_latent_gain_in_loose(records, grid_size=10)
+      latent_gain = records.select{|r| r.profit <= 0}.map{|r|r.max}
+      Record.histgram(latent_gain, grid_size)
+    end
+
+    def self.worst_latent_gain_in_win(records, grid_size=10)
+      latent_gain = records.select{|r| r.profit > 0}.map{|r|r.min}
+      Record.histgram(latent_gain, grid_size)
+    end
+
+    def self.histgram(array,grid_size)
+      max = array.max
+      min = array.min
+      step = (max-min)/grid_size
+      histgram = Soks.new
+      grid_size.times { |i| histgram[i] = Float::NAN}
+      array.each do |p|
+        grid = ((p - min)/step).to_i
+        grid -= 1 if p == max
+        if histgram[grid].is_a?(Float) and histgram[grid].nan?
+          histgram[grid] = 0 
+        end
+        histgram[grid] += 1
+      end
+      x = Soks.new
+      grid_size.times do |i|
+        x << i*step + min
+      end
+      [x,histgram]
     end
   end
 end

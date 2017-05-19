@@ -50,6 +50,8 @@ module Kabu
             position.term, contracted,
             position.date, action.date,
             position.buy? ? :buy : :sell )
+          @records[-1].max = position.max
+          @records[-1].min = position.min
         end
       end
       @positions -= closesd

@@ -1,6 +1,6 @@
 module Kabu
   class Position
-    attr_accessor :code, :date, :price, :volume, :term
+    attr_accessor :code, :date, :price, :volume, :term, :max, :min
 
     def initialize(code, date, price, volume)
       @code = code
@@ -33,7 +33,7 @@ module Kabu
     def update_mfe(price, percent)
       g = gain(price,@volume,percent)
       @max = [g, @max].max
-      @min = [g, @min].max
+      @min = [g, @min].min
     end
 
     class Buy < Position
