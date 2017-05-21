@@ -158,5 +158,35 @@ module Kabu
         end
       end
     end
+
+    class Histgram < Chart
+
+      def plot(x, histgram, file_path)
+        count = [10, histgram.length].min
+        step = x.length / count
+        step = 1 if step == 0
+        xlabels = []
+        x.each_with_index do |label,i|
+          xlabels << "\"#{label.round(0)}\" #{i}" if i % step == 0
+        end
+        xtics = "(#{xlabels.join(',')})"
+
+        Numo.gnuplot do
+          reset
+          set style: :fill, solid: :border, lc: "'black'"
+          set terminal: 'jpeg'
+          set output:  file_path
+          set yrange: histgram.yrange
+          set logscale: :y
+          set lmargin: 8
+          set rmargin: 2
+          set bmargin: true
+          set xtics: xtics
+          set grid: true
+          plot [x.length.times.to_a, histgram.y, with: :boxes, lw: 2, lc: "'light-cyan'", notitle: true]
+          unset logscale: :y
+        end
+      end
+    end
   end
 end
