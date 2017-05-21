@@ -134,6 +134,24 @@ module Kabu
       results
     end
 
+    def dev(length)
+      results = Soks.new
+      self.each_cons(length) do |values|
+        ave = values.sum / values.length
+        dev = values.inject(0) {|s,v| s+=(v-ave)**2}
+        results << Math.sqrt(dev/length)
+      end
+      results
+    end
+
+
+    def cumu
+      sum = 0
+      self.map do |value|
+        sum += value.finite? ? value : 0
+      end
+    end
+
     def transpose
       Soks[*super]
     end
