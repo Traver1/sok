@@ -26,7 +26,7 @@ module Kabu
     def update_mfe(actions)
       each_positions(actions) do |code, action, position|
         if action.none?
-          position.update_mfe(action.price, @percent)
+          position.update_mfe(action.price)
         end
       end
     end
@@ -46,7 +46,7 @@ module Kabu
             action.volume = 0
           end
           @records << Record.new( code,
-            position.gain(action.price, contracted, @percent),
+            position.gain(action.price, contracted),
             position.term, contracted,
             position.date, action.date,
             position.buy? ? :buy : :sell )
@@ -63,9 +63,11 @@ module Kabu
           if action.buy?
             @positions << Position::Buy.new(action.code, action.date, 
                                             action.price, action.volume)
+            @positions[-1].percent = @percent
           elsif action.sell?
             @positions << Position::Sell.new(action.code, action.date, 
                                              action.price, action.volume)
+            @positions[-1].percent = @percent
           end
           action.volume = 0
         end

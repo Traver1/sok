@@ -1,6 +1,6 @@
 module Kabu
   class Position
-    attr_accessor :code, :date, :price, :volume, :term, :max, :min
+    attr_accessor :code, :date, :price, :volume, :term, :max, :min, :percent
 
     def initialize(code, date, price, volume)
       @code = code
@@ -24,20 +24,20 @@ module Kabu
       self.is_a? Sell
     end
 
-    def self.total_gain(positions, price, percent=false)
+    def self.total_gain(positions, price)
       positions.inject(0) do |sum,position|
-        sum += position.gain(price, position.volume, percent)
+        sum += position.gain(price, position.volume)
       end
     end
 
-    def update_mfe(price, percent)
-      g = gain(price,@volume,percent)
+    def update_mfe(price)
+      g = gain(price,@volume)
       @max = [g, @max].max
       @min = [g, @min].min
     end
 
     class Buy < Position
-      def gain(price, volume, percent)
+      def gain(price, volume)
         raise 'over position volume' if volume > @volume
         if not percent
           (price - @price) * volume
@@ -49,7 +49,7 @@ module Kabu
 
     class Sell < Position
 
-      def gain(price, volume, percent)
+      def gain(price, volume)
         raise 'over position volume' if volume > @volume
         if not percent
           (@price - price) * volume
