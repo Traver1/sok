@@ -15,8 +15,7 @@ companies.each do |company|
   codes << company.code
   trader = Trader.new
   trader.percent = true
-  #strategy = Sma65Cc3Ravi.new(0.5)
-  strategy = Sma65Cc3.new
+  strategy = Sma65Cc3Ravi.new(0.5)
   position =nil
   soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
   soks.each_cons(69) do |sok|
