@@ -100,11 +100,13 @@ module Kabu
         max_series_of_looses = Record.max_series_of_looses(@records)
         average_posess_term_of_win = Record.average_posess_term_of_win(@records)
         average_posess_term_of_loose = Record.average_posess_term_of_loose(@records)
+        average = Record.average(@records)
         max_drow_down = Record.max_drow_down(@records)
 
         puts "======================================================"
         puts "net income:               #{net_income}"
         puts "profit | loss:            #{profit}    | #{loss}"
+        puts "average:                  #{average}"
         puts "pf:                       #{profit_factor.round(1)}"
         puts "max profit | max loss:    #{max_profit}     | #{max_loss}"
         puts "trades | wins | looses:   #{trades}     | #{wins}     | #{looses}"
