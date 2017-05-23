@@ -144,6 +144,13 @@ module Kabu
       results
     end
 
+    def ravi(s_length, l_length)
+      l_ave = self.ave(l_length)
+      s_ave = self.ave(s_length)[-l_ave.length..-1]
+      s_ave.zip(l_ave).map do |s, l|
+        (s-l).abs/l*100
+      end
+    end
 
     def cumu
       sum = 0
@@ -154,6 +161,10 @@ module Kabu
 
     def transpose
       Soks[*super]
+    end
+
+    def zip(other)
+      Soks[*super(other)]
     end
 
   end
