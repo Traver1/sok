@@ -1,5 +1,16 @@
 class Sma65Cc3
 
+  attr_accessor :length
+
+  def initialize
+    @length = 68
+  end
+
+  def set_env(soks, env)
+    env[:closes] = Soks.parse(soks[0..-2],:close)
+    env[:open] = soks[-1].open
+  end
+
   def decide(env)
     code = env[:code]
     date = env[:date]

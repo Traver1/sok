@@ -3,8 +3,15 @@ include Kabu
 
 class Sma65Cc3
 
-  def initialize(n)
-    @n = n
+  attr_accessor :length, :n
+
+  def initialize
+    @length = 68
+  end
+
+  def set_env(soks, env)
+    env[:closes] = Soks.parse(soks[0..-2],:close)
+    env[:open] = soks[-1].open
   end
 
   def decide(env)
@@ -36,7 +43,4 @@ class Sma65Cc3
 end
 
 exam = Examination.new
-exam.n(Sma65Cc3, 68) do |soks, env|
-  env[:closes] = Soks.parse(soks[0..-2],:close)
-  env[:open] = soks[-1].open
-end
+exam.n(Sma65Cc3.new) 

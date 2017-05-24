@@ -3,6 +3,4 @@ include Kabu
 
 exam = Examination.new
 strategy = CbPbHigh.new
-exam.deviation(28, strategy) do |soks, env|
-  env[:soks] = soks
-end
+exam.deviation(strategy)

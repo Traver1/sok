@@ -1,14 +1,19 @@
 module Kabu
   class CbPbHighStopLoss
 
-    attr_accessor :loss_line
+    attr_accessor :loss_line, :length
 
     def initialize
       @loss_cutted = false
+      @length = 27
     end
 
     def setup
       @last_position = nil
+    end
+
+    def set_env(soks, env)
+      env[:soks] = soks
     end
 
     def decide(env)

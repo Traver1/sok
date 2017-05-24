@@ -2,9 +2,7 @@ require File.expand_path '../../../lib/sok', File.dirname(__FILE__)
 include Kabu
 
 companies = Company.where('code like ?', 'I2%').order(:code).select(:code)
-
 FileUtils.mkdir_p File.expand_path "../../../data/strategy1-1/chart", File.dirname(__FILE__)
-
 
 companies.each do |company|
   soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
@@ -36,8 +34,6 @@ companies.each do |company|
       [dates.x, bols[2].y, with: :lines, notitle: true, lc: "'salmon'", lt: 0],
       [dates.x, bols[3].y, axes: :x1y2, with: :lines, notitle: true, lc: "'orange'"]
   end
-
-
 end
 
 

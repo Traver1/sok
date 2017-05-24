@@ -3,7 +3,4 @@ include Kabu
 
 dir = File.expand_path '../../../data/strategy1-4/', File.dirname(__FILE__)
 exam = Examination.new
-exam.mfe(CbPbHigh.new, 28, dir) do |soks, env|
-  env[:soks] = soks
-end
-
+exam.mfe(CbPbHigh.new, dir) 

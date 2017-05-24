@@ -6,6 +6,4 @@ chart = CbPb.new
 strategy = CbPbDays.new(14)
 dir = File.expand_path '../../../data/strategy1-4/chart/I201'
 exam = Examination.new
-exam.plot_recorded_chart(strategy,28,'I201',chart,dir) do |soks, env|
-  env[:soks] = soks
-end
+exam.plot_recorded_chart(strategy,'I201',chart,dir) 

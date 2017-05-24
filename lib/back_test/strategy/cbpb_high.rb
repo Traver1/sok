@@ -1,6 +1,16 @@
 module Kabu
   class CbPbHigh
 
+    attr_accessor :n, :length
+
+    def initialize
+      @length = 27
+    end
+
+    def set_env(soks, env)
+      env[:soks] = soks
+    end
+
     def decide(env)
       code = env[:code]
       date = env[:date]

@@ -1,7 +1,7 @@
 module Kabu
   class Examination
 
-    def n(klass, length)
+    def n(strategy)
       wins = []
       codes = []
       companies = Company.where('code like ?', 'I2%').order(:code).select(:code)
@@ -11,15 +11,17 @@ module Kabu
         [5,10,15,20,30,50].each do |n|
           trader = Trader.new
           trader.percent = true
+          strategy.setup if strategy.respond_to? :setup
+          strategy.n = n
           position =nil
           soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
-          soks.each_cons(length) do |sok|
+          soks.each_cons(strategy.length) do |sok|
             env = {}
             env[:code] = company.code
             env[:date] = sok[-1].date
             env[:position] = position
-            yield(Soks[*sok.to_a], env)
-            action = klass.new(n).decide(env)
+            strategy.set_env(Soks[*sok.to_a],env)
+            action = strategy.decide(env)
             trader.receive [action]
             position = trader.positions.any? ? trader.positions[0] : nil
           end
@@ -36,17 +38,17 @@ module Kabu
       puts "#{["    ", average.map{|a|a.round(2).to_s.ljust(4,'0')}].flatten.join("|")}|"
     end
 
-    def plot_recorded_chart(strategy, length, code, chart, dir)
+    def plot_recorded_chart(strategy, code, chart, dir)
       trader = Trader.new
       trader.percent = true
       position =nil
       soks = Sok.joins(:company).where('companies.code=?',code).order('date')
-      soks.each_cons(length) do |sok|
+      soks.each_cons(strategy.length) do |sok|
         env = {}
         env[:code] = code
         env[:date] = sok[-1].date
         env[:position] = position
-        yield(Soks[*sok.to_a], env)
+        strategy.set_env(Soks[*sok.to_a], env)
         action = strategy.decide(env)
         trader.receive [action]
         position = trader.positions.any? ? trader.positions[0] : nil
@@ -54,7 +56,7 @@ module Kabu
       trader.plot_recorded_chart(dir, chart)
     end
 
-    def deviation(length, strategy)
+    def deviation(strategy)
       net_incomes = []
       dds = []
       wins = []
@@ -72,12 +74,12 @@ module Kabu
         strategy.setup if strategy.respond_to? :setup
         position =nil
         soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
-        soks.each_cons(length) do |sok|
+        soks.each_cons(strategy.length) do |sok|
           env = {}
           env[:code] = company.code
           env[:date] = sok[-1].date
           env[:position] = position
-          yield(Soks[*sok.to_a], env)
+          strategy.set_env(Soks[*sok.to_a], env)
           action = strategy.decide(env)
           trader.receive [action]
           position = trader.positions.any? ? trader.positions[0] : nil
@@ -109,7 +111,7 @@ module Kabu
       puts "|#{["    ", indecis].flatten.join("|")}|"
     end
 
-    def mfe(strategy,length,dir)
+    def mfe(strategy,dir)
       codes = []
       trader = Trader.new
       trader.percent = true
@@ -117,14 +119,15 @@ module Kabu
       companies.each do |company|
         codes << company.code
         trader.positions = []
+        strategy.setup if strategy.respond_to? :setup
         position =nil
         soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
-        soks.each_cons(68) do |sok|
+        soks.each_cons(strategy.length) do |sok|
           env = {}
           env[:code] = company.code
           env[:date] = sok[-1].date
           env[:position] = position
-          yield(Soks[*sok.to_a], env)
+          strategy.set_env(Soks[*sok.to_a], env)
           action = strategy.decide(env)
           trader.receive [action]
           position = trader.positions.any? ? trader.positions[0] : nil
@@ -149,7 +152,7 @@ module Kabu
       cumu_chart.plot(xw,worsts, dir + '/cumu_mfe_win.jpeg')
     end
 
-    def stoploss(stop_strategy, base_strategy, length, range, dir)
+    def stoploss(stop_strategy, base_strategy, range, dir)
       net_incomes = []
       max_drow_downs = []
       wins = []
@@ -173,12 +176,12 @@ module Kabu
           stop_strategy.loss_line = loss_cut_line
           position =nil
           soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
-          soks.each_cons(length) do |sok|
+          soks.each_cons(stop_strategy.length) do |sok|
             env = {}
             env[:code] = company.code
             env[:date] = sok[-1].date
             env[:position] = position
-            yield(Soks[*sok.to_a], env)
+            stop_strategy.set_env(Soks[*sok.to_a], env)
             action = stop_strategy.decide(env)
             trader.receive [action]
             position = trader.positions.any? ? trader.positions[0] : nil
@@ -205,12 +208,12 @@ module Kabu
         base_strategy.setup if base_strategy.respond_to? :setup
         position =nil
         soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
-        soks.each_cons(68) do |sok|
+        soks.each_cons(base_strategy.length) do |sok|
           env = {}
           env[:code] = company.code
           env[:date] = sok[-1].date
           env[:position] = position
-          yield(Soks[*sok.to_a], env)
+          base_strategy.set_env(Soks[*sok.to_a], env)
           action = base_strategy.decide(env)
           trader.receive [action]
           position = trader.positions.any? ? trader.positions[0] : nil

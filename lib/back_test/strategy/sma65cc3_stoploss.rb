@@ -1,9 +1,15 @@
 class Sma65Cc3StopLoss
 
-  attr_accessor :loss_line
+  attr_accessor :loss_line, :length
 
   def initialize()
+    @length = 68
     @loss_cut = false
+  end
+
+  def set_env(soks, env)
+    env[:closes] = Soks.parse(soks[0..-2],:close)
+    env[:open] = soks[-1].open
   end
 
   def setup()
