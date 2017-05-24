@@ -141,7 +141,7 @@ module Kabu
     def plot_recorded_chart(dir,chart=nil)
       FileUtils.mkdir_p dir
       @records.each do |record|
-        file_path = dir + "/#{record.code}_#{record.from.strftime('%Y%m%d')}_#{record.to.strftime('%Y%m%d')}.jpeg"
+        file_path = dir + "/#{record.code}_#{record.from.strftime('%Y%m%d')}_#{record.to.strftime('%Y%m%d')}.jpg"
         if chart 
           chart.plot(record, file_path)
         else

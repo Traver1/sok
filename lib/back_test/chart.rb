@@ -188,5 +188,33 @@ module Kabu
         end
       end
     end
+
+    class Cumu < Chart
+      def plot(x, y, file_path)
+        count = [10, x.length].min
+        step = x.length / count
+        step = 1 if step == 0
+        xlabels = []
+        x.each_with_index do |label,i|
+          xlabels << "\"#{label.round(1)}\" #{i}" if i % step == 0
+        end
+        xtics = "(#{xlabels.join(',')})"
+
+        Numo.gnuplot do
+          reset
+          set terminal: 'jpeg'
+          set output:  file_path
+          set yrange: (0..100)
+          set ytics: '(0,10,20, 50, 80, 90, 100)'
+          set lmargin: 8
+          set rmargin: 2
+          set bmargin: true
+          set xtics: xtics
+          set grid: true
+          plot [x.length.times.to_a, y.y, with: :lines, lt: 1, lc: "'black'", notitle: true]
+          unset logscale: :y
+        end
+      end
+    end
   end
 end

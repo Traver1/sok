@@ -152,6 +152,22 @@ module Kabu
       end
     end
 
+    def high(length)
+      results = Soks.new
+      self.each_cons(length) do |values|
+        results << values.inject(0) {|h,v| h=[h,v.high].max}
+      end
+      results
+    end
+
+    def low(length)
+      results = Soks.new
+      self.each_cons(length) do |values|
+        results << values.inject(Float::MAX) {|l,v| l=[l,v.low].min}
+      end
+      results
+    end
+
     def cumu
       sum = 0
       self.map do |value|

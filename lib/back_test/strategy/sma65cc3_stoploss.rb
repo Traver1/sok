@@ -1,8 +1,14 @@
 class Sma65Cc3StopLoss
 
-  def initialize(loss_line)
-    @loss_line = loss_line
+  attr_accessor :loss_line
+
+  def initialize()
     @loss_cut = false
+  end
+
+  def setup()
+    @loss_cutted = false
+    @last_position = nil
   end
 
   def reset
