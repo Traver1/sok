@@ -187,8 +187,8 @@ module Kabu
       Soks[*super]
     end
 
-    def zip(other)
-      Soks[*super(other)]
+    def zip(*other)
+      Soks[*super(*other)]
     end
 
   end
