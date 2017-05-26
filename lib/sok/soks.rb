@@ -175,6 +175,14 @@ module Kabu
       end
     end
 
+    def log
+      results = Soks.new
+      self.each_cons(2) do |values|
+        results << Math.log(values[1] / values[0])
+      end
+      results
+    end
+
     def transpose
       Soks[*super]
     end
