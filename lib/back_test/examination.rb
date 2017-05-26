@@ -232,5 +232,26 @@ module Kabu
         file << Marshal.dump([net_incomes, max_drow_downs, wins, averages, records])
       end
     end
+
+    def plot_summary(strategy,code, dir)
+      companies = Company.where('code like ?', code).order(:code).select(:code)
+      trader = Trader.new
+      trader.percent = true
+      strategy.setup if strategy.respond_to? :setup
+      position =nil
+      soks = Sok.joins(:company).where('companies.code=?',code).order('date')
+      soks.each_cons(strategy.length) do |sok|
+        env = {}
+        env[:code] = code
+        env[:date] = sok[-1].date
+        env[:position] = position
+        strategy.set_env(Soks[*sok.to_a],env)
+        action = strategy.decide(env)
+        trader.receive [action]
+        position = trader.positions.any? ? trader.positions[0] : nil
+      end
+      trader.summary
+      trader.save(dir)
+    end
   end
 end
