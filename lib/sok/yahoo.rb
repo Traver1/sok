@@ -10,7 +10,7 @@ module Kabu
         @splits = []
         @url = nil
         begin
-          @url  ||= "http://info.finance.yahoo.co.jp/history/?code=#{code}&sy=#{from.year}&sm=#{from.month}&sd=#{from.day}&ey=#{to.year}&em=#{to.month}&ed=#{to.day}&tm=d"
+          @url  ||= "https://info.finance.yahoo.co.jp/history/?code=#{code}&sy=#{from.year}&sm=#{from.month}&sd=#{from.day}&ey=#{to.year}&em=#{to.month}&ed=#{to.day}&tm=d"
           @doc    = Nokogiri::HTML(open(@url))
           @doc.css("table.boardFin").each do |table|
             tds = table.css("td")

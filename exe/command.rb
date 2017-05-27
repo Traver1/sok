@@ -20,6 +20,7 @@ class Command
       [args["code"]] : Kabu::KDb.read_codes
     reader =  @yahoo
     codes.each do |code|
+      code = code[0..3]
       next if args["codefrom"] and args["codefrom"] > code 
       while not reader.read_stocks(code, args["from"] ,args["to"])
         sleep 60
