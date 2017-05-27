@@ -1,5 +1,6 @@
 require 'bundler'
 require 'open-uri'
+require 'optparse'
 Bundler.require
 Dir[File.expand_path('../sok', __FILE__) << '/*.rb'].each do |file|
   require file
