@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170510090746) do
+ActiveRecord::Schema.define(version: 20170526235357) do
 
   create_table "companies", force: :cascade do |t|
     t.string "code", null: false
@@ -27,6 +27,13 @@ ActiveRecord::Schema.define(version: 20170510090746) do
     t.float "close"
     t.integer "volume", limit: 8
     t.index ["company_id", "date"], name: "index_soks_on_company_id_and_date", unique: true
+  end
+
+  create_table "splits", force: :cascade do |t|
+    t.integer "sok_id", null: false
+    t.float "before", null: false
+    t.float "after", null: false
+    t.index ["sok_id"], name: "index_splits_on_sok_id", unique: true
   end
 
 end
