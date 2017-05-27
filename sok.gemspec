@@ -29,5 +29,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "sqlite3", "~> 1.3.11"
   spec.add_development_dependency "activerecord-import", "~> 0.18.2"
   spec.add_development_dependency "validates_timeliness", "~> 3.0"
-  spec.add_development_dependency "numo-gnuplot"
+  spec.add_development_dependency "numo-gnuplot", "~>0.2.2"
 end
