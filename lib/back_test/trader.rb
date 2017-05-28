@@ -105,9 +105,10 @@ module Kabu
         if @bunkrupt
           bunk = Bunkrupt.new
           bunk.risk = Record.average_loss(@records)
+          bunk.win = win_rate
           bunk.n = 1000
           bunk.span = 1000
-          bunk.pf = Record.average_win(@records) / bunk.risk
+          bunk.pf = Record.average_profit(@records) / bunk.risk
         end
 
         puts "======================================================"

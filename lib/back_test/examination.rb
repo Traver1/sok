@@ -236,6 +236,7 @@ module Kabu
     def plot_summary(strategy,code, dir)
       companies = Company.where('code like ?', code).order(:code).select(:code)
       trader = Trader.new
+      trader.bunkrupt = true
       trader.percent = true
       strategy.setup if strategy.respond_to? :setup
       position =nil

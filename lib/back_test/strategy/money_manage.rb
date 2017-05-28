@@ -1,5 +1,5 @@
 module Kabu
-  class TestStrategy
+  class MoneyManage
 
     attr_accessor :length, :n
 
@@ -55,6 +55,51 @@ module Kabu
 
         return Action::None.new(code,soks[-1].open)
       end
+
+      if log[-1] < btm[-1]
+        return Action::Buy.new(code,date,soks[-1].open,1)
+      elsif log[-1] > top[-1]
+        return Action::Sell.new(code,date,soks[-1].open,1)
+      else
+        return Action::None.new(code,soks[-1].open)
+      end
+    end
+  end
+
+  class MoneyMonageN
+
+    attr_accessor :length, :n
+
+    def initialize
+      @length = 67
+    end
+
+    def set_env(soks, env)
+      env[:soks] = soks
+    end
+
+    def setup
+    end
+
+    def decide(env)
+      soks = env[:soks]
+      code = env[:code]
+      date = env[:date]
+      position = env[:position]
+      closes = Soks.parse(soks,:close)
+
+      log = closes[-67..-2].log
+      ave,btm,top,dev = log.bol(65,1)
+      if not position.nil? 
+        if position.sell? and position.term >= @n
+          return Action::Buy.new(code,date,soks[-1].open,1)
+        elsif  position.buy? and position.term >= @n
+          return Action::Sell.new(code,date,soks[-1].open,1)
+        else
+          return Action::None.new(code,soks[-1].open)
+        end
+      end
+
 
       if log[-1] < btm[-1]
         return Action::Buy.new(code,date,soks[-1].open,1)
