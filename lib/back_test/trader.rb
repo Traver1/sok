@@ -1,7 +1,7 @@
 module Kabu
   class Trader
 
-    attr_accessor :records, :positions, :percent
+    attr_accessor :records, :positions, :percent, :bunkrupt
 
     def initialize
       @positions = []
@@ -102,6 +102,13 @@ module Kabu
         average_posess_term_of_loose = Record.average_posess_term_of_loose(@records)
         average = Record.average(@records)
         max_drow_down = Record.max_drow_down(@records)
+        if @bunkrupt
+          bunk = Bunkrupt.new
+          bunk.risk = Record.average_loss(@records)
+          bunk.n = 1000
+          bunk.span = 1000
+          bunk.pf = Record.average_win(@records) / bunk.risk
+        end
 
         puts "======================================================"
         puts "net income:               #{net_income}"
@@ -116,6 +123,7 @@ module Kabu
         puts "average span{win}:        #{average_posess_term_of_win}"
         puts "average span{loose}:      #{average_posess_term_of_loose}"
         puts "max drow down:            #{max_drow_down}"
+        puts "bunkrupt:                 #{bunk.simulate.round(2)}" if @bunkrupt
         puts "======================================================"
       else
         puts "======================================================"
