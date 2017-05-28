@@ -101,6 +101,14 @@ module Kabu
       self.net_income(records) / records.length
     end
 
+    def self.average_profit(records)
+      self.profit(records) / self.wins(records)
+    end
+
+    def self.average_loss(records)
+      self.loss(records) / self.looses(records)
+    end
+
     def self.average_posess_term_of_win(records)
       records.inject(0) do |sum,record|
         sum += record.profit > 0 ? record.term : 0
