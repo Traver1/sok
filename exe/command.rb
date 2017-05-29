@@ -27,9 +27,9 @@ class Command
       end
       stc_cnt  = 0 
       reader.stocks.each do |stock| 
-        stc_cnt += stock.save
+        stc_cnt += stock.save ? 1 : 0
       end
-      spt_cnt  = reader.splits.inject(0) {|s, split| s += split.save}
+      spt_cnt  = reader.splits.inject(0) {|s, split| s += split.save ? 1 : 0}
       puts "insert stocks #{code}: #{stc_cnt}/#{reader.stocks.length}"
       puts "insert splits #{code}: #{spt_cnt}/#{reader.splits.length}"
     end
