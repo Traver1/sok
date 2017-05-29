@@ -15,12 +15,21 @@ module Kabu
     def unit
       return @unit if @unit
       s = soks.order('date').last(20)
+      return 1 if not exist_volume?(s)
       result = gcd_euclid(s[-1].volume, s[-1].volume)
       s[-20..-1].each do |sok|
         result = gcd_euclid(sok.volume, result)
       end
       @unit = result
     end
+
+    def exist_volume?(soks)
+      soks.each do |sok|
+        return false if sok.volume.nil?
+      end
+      true
+    end
+      
 
     def gcd_euclid(u, v)
       u = u.to_f
