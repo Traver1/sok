@@ -37,7 +37,7 @@ module Kabu
                 s.volume   = tds.shift.content.gsub(",", "")
                 tds.shift
                 @stocks << s
-                if @splits.last and @splits.last.nil?
+                if @splits.last and @splits.last.sok.nil?
                   @splits.last.sok = s
                 end
               end
