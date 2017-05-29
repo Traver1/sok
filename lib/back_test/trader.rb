@@ -1,13 +1,14 @@
 module Kabu
   class Trader
 
-    attr_accessor :records, :positions, :percent, :bunkrupt
+    attr_accessor :records, :positions, :percent, :bunkrupt, :capital
 
     def initialize
       @positions = []
       @records = []
       @cost = 20
       @percent = false
+      @capital = 0
     end
 
     def receive(actions)
@@ -21,6 +22,14 @@ module Kabu
       @positions.each do |position|
         position.term += 1
       end
+    end
+
+    def capital
+      sum = 0
+      @positions.each do |position|
+        sum += position.price * position.volume
+      end
+      @capital + sum
     end
 
     def update_mfe(actions)
@@ -52,6 +61,7 @@ module Kabu
             position.buy? ? :buy : :sell )
           @records[-1].max = position.max
           @records[-1].min = position.min
+          @capital += position.price * contracted + @records[-1].profit
         end
       end
       @positions -= closesd
@@ -69,6 +79,7 @@ module Kabu
                                              action.price, action.volume)
             @positions[-1].percent = @percent
           end
+          @capital -= action.price * action.volume
           action.volume = 0
         end
       end
