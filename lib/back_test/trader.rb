@@ -1,14 +1,14 @@
 module Kabu
   class Trader
 
-    attr_accessor :records, :positions, :percent, :bunkrupt, :capital
+    attr_accessor :records, :positions, :percent, :bunkrupt, :capital, :cost
 
     def initialize
       @positions = []
       @records = []
-      @cost = 20
+      @cost = 0
       @percent = false
-      @capital = 0
+      @capital = nil
     end
 
     def receive(actions)
@@ -16,6 +16,7 @@ module Kabu
       increese_term
       contract_remain actions
       update_mfe actions
+      raise 'bunkrupt! check strategy!!' if @capital and @capital <= 0
     end
 
     def increese_term
@@ -24,7 +25,8 @@ module Kabu
       end
     end
 
-    def capital
+    def capital(include_poistion = true)
+      return @capital if not include_poistion
       sum = 0
       @positions.each do |position|
         sum += position.price * position.volume
@@ -43,25 +45,27 @@ module Kabu
     def contract_to_current_position(actions)
       closesd = []
       each_positions(actions) do |code, action, position|
-        if (position.sell? and action.buy?) or
-          (position.buy? and action.sell?)
-          next if action.volume <= 0
+        if ((position.sell? and action.buy?) or 
+            (position.buy? and action.sell?)) and 
+            action.volume > 0 and position.volume > 0
           contracted = [position.volume, action.volume].min
           if position.volume == contracted
-            action.volume -= contracted
             closesd << position
-          else
-            position.volume -= contracted
-            action.volume = 0
           end
+          g = position.gain(action.price, contracted)
+          c = position.price * contracted * @cost / 100
           @records << Record.new( code,
-            position.gain(action.price, contracted),
+            g - c ,
             position.term, contracted,
             position.date, action.date,
             position.buy? ? :buy : :sell )
           @records[-1].max = position.max
           @records[-1].min = position.min
-          @capital += position.price * contracted + @records[-1].profit
+          if @capital
+            @capital += position.price * contracted + @records[-1].profit
+          end
+          action.volume -= contracted
+          position.volume -= contracted
         end
       end
       @positions -= closesd
@@ -79,7 +83,9 @@ module Kabu
                                              action.price, action.volume)
             @positions[-1].percent = @percent
           end
-          @capital -= action.price * action.volume
+          if @capital
+            @capital -= action.price * action.volume
+          end
           action.volume = 0
         end
       end
@@ -87,10 +93,11 @@ module Kabu
 
     def each_positions(actions)
       actions.group_by {|a| a.code}.each do |code, action|
-        action = action[0]
-        sorted = @positions.find_all {|p| p.code == code }.sort {|a,b| a.date <=> b.date }
-        sorted.each do |position|
-          yield code, action, position
+        action.each do |a|
+          sorted = @positions.find_all {|p| p.code == code }.sort {|a,b| a.date <=> b.date }
+          sorted.each do |position|
+            yield code, a, position
+          end
         end
       end
     end
