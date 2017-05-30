@@ -250,10 +250,11 @@ module Kabu
         env[:code] = code
         env[:date] = sok[-1].date
         env[:position] = position
-        env[:capital] = @trader.capital
+        env[:positions] = @trader.positions
+        env[:capital] = @trader.capital(false)
         strategy.set_env(Soks[*sok.to_a],env)
         action = strategy.decide(env)
-        @trader.receive [action]
+        @trader.receive [action].flatten
         position = @trader.positions.any? ? @trader.positions[0] : nil
       end
       @trader.summary
