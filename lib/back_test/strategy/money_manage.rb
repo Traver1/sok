@@ -25,7 +25,7 @@ module Kabu
       ave,btm,top,dev = log.bol(65,1)
       if not position.nil? 
 
-        gain = position.gain(soks[-1].close,1)
+        gain = position.gain(soks[-2].close,1)
 
         if gain > 20 or gain < -1
           if  position.sell? 
@@ -151,7 +151,7 @@ module Kabu
       ave,btm,top,dev = log.bol(65,1)
       if not position.nil?
 
-        gain = position.gain(soks[-1].close,1) / position.price * 100
+        gain = position.gain(soks[-2].close,1) / position.price * 100
 
         if gain > 20 or gain < -1
           if  position.sell?
@@ -235,7 +235,7 @@ module Kabu
       actions = []
       if positions.any?
         positions.each do |position|
-          gain = position.gain(soks[-1].close,1) / position.price * 100
+          gain = position.gain(soks[-2].close,1) / position.price * 100
           if gain > 20 or gain < -1
             if  position.sell?
               actions << Action::Buy.new(code,date,soks[-1].open,position.volume)
