@@ -261,4 +261,60 @@ module Kabu
       @trader.save(dir)
     end
   end
+
+  class Examination2
+
+    attr_accessor :trader, :from, :to
+
+    def plot_summary(strategy,codes, dir)
+      companies = Company.where('code in (?)', codes)
+      if not @trader
+        @trader = Trader.new
+        @trader.bunkrupt = true
+        @trader.percent = true
+      end
+      strategy.setup if strategy.respond_to? :setup
+      com_soks(companies).each_cons(strategy.length) do |days|
+        validate_order days
+        env = {}
+        env[:codes] = days[-1].map{|sok| sok ? sok.company.code : nil}.compact
+        env[:date] = days[-1].select {|sok| sok}.first.date
+        env[:positions] = @trader.positions
+        env[:capital] = @trader.capital(false)
+        env[:coms] = days.transpose.map { |sok| Soks[*sok] }
+        strategy.set_env(env[:coms],env)
+        action = strategy.decide(env)
+        @trader.receive [action].flatten
+        position = @trader.positions.any? ? @trader.positions[0] : nil
+      end
+      @trader.summary
+      @trader.save(dir)
+    end
+
+    # length = Companies.length    length = Soks.length
+    # [Soks, Soks, Soks ...]    -> [Coms, Coms, Coms ...]
+    # (Coms = [Sok, Sok, Sok ... ])
+    #
+    def com_soks(companies)
+      results = companies.map {|com| com.adjusteds}
+      maxl = results.inject(results[0].length) do |r,soks|
+        r = [soks.length,r].max
+      end
+      results.length.times do |i|
+        (maxl-results[i].length).times do
+          resutls[i].insert(0,nil)
+        end
+      end
+      results.transpose
+    end
+
+    def validate_order(days)
+      date = days[-1][0].date
+      days[-1][1..-1].each do |sok|
+        if sok and not sok.date == date
+          raise 'date order missmatch error'
+        end
+      end
+    end
+  end
 end
