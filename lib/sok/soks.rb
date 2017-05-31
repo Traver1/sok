@@ -126,6 +126,22 @@ module Kabu
       Soks[aves, b_bands, u_bands, devs]
     end
 
+    def diff(length=2)
+      results = Soks.new
+      self.each_cons(length) do |values|
+        results << values.last - values.first
+      end
+      results
+    end
+
+    def abs
+      results = Soks.new
+      self.each do |value|
+        results << value.abs
+      end
+      results
+    end
+
     def ave(length)
       results = Soks.new
       self.each_cons(length) do |values|
