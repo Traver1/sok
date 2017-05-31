@@ -29,7 +29,20 @@ module Kabu
       end
       true
     end
-      
+
+    def adjusteds
+      return @adjusteds if @adjusteds
+      rate = 1
+      @adjusteds = soks.order('date desc').each do |sok|
+        sok.close = sok.close * rate
+        sok.high = sok.high * rate
+        sok.low = sok.low * rate
+        sok.open = sok.open * rate
+        if sok.split
+          rate = sok.split.before.to_f / sok.split.after 
+        end
+      end.reverse
+    end
 
     def gcd_euclid(u, v)
       u = u.to_f
