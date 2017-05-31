@@ -283,4 +283,73 @@ module Kabu
       actions
     end
   end
+
+  class MoneyManageTwoCodes < MoneyManageHukuri
+
+    def decide(env)
+      coms = env[:coms]
+      capital = env[:capital]
+
+      action(env)
+    end
+
+    def action(env)
+      coms = env[:coms]
+      capital = env[:capital]
+      positions = env[:positions]
+      codes = env[:codes]
+      date = env[:date]
+      actions = []
+      coms.each do |soks|
+        position = positions.find {|p| p.code == soks.last.company.code}
+        closes = Soks.parse(soks,:close)
+        log = closes[-67..-2].log
+        ave,btm,top,dev = log.bol(65,1)
+        volume = volume(capital, soks)
+        code = soks.last.company.code
+        if not position.nil?
+          gain = position.gain(soks[-2].close,1) / position.price * 100
+          if gain > 20 or gain < -1
+            if  position.sell?
+              action =  Action::Buy.new(code,date,soks[-1].open,position.volume)
+            elsif position.buy?
+              action =  Action::Sell.new(code,date,soks[-1].open,position.volume)
+            else
+              action = Action::None.new(code,soks[-1].open)
+            end
+          elsif gain > 10
+            if log[-1] < btm[-1] and position.sell?
+              action = Action::Buy.new(code,date,soks[-1].open,position.volume + volume)
+            elsif log[-1] > top[-1] and position.buy?
+              action = Action::Sell.new(code,date,soks[-1].open,position.volume + volume)
+            else
+              action = Action::None.new(code,soks[-1].open)
+            end
+          elsif gain > 2
+            bol = closes[-26..-2].bol(25,2.0)
+            if bol[1][-1] > closes[-2] and position.sell?
+              action =  Action::Buy.new(code,date,soks[-1].open,position.volume)
+            elsif bol[2][-1] < closes[-2] and position.buy?
+              action =  Action::Sell.new(code,date,soks[-1].open,position.volume)
+            else
+              action = Action::None.new(code,soks[-1].open)
+            end
+          else
+            action = Action::None.new(code,soks[-1].open)
+          end
+        elsif volume > 0
+          if log[-1] < btm[-1]
+            action = Action::Buy.new(code,date,soks[-1].open,volume)
+          elsif log[-1] > top[-1]
+            action =  Action::Sell.new(code,date,soks[-1].open,volume)
+          else
+            action = Action::None.new(code,soks[-1].open)
+          end
+          capital -= action.price * action.volume if not action.none?
+        end
+        actions << action
+      end
+      actions
+    end
+  end
 end
