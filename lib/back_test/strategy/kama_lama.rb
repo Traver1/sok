@@ -18,6 +18,11 @@ module Kabu
       env[:open] = soks[-1].open
     end
 
+    def n=(m)
+      @m = m
+      @length = m + 2
+    end
+
     def setup
       @kama = nil
       @lama = nil
@@ -58,11 +63,11 @@ module Kabu
       er = (closes[-1] - closes[-@m]).abs / closes[-@m-1..-1].diff.abs.sum
       alpha = (er*(2.0/(@s_len+1) - 2.0/(@l_len+1)) + 2.0/(@l_len+1)) ** 2
       if not @kama or not @lama
-        @kama = closes[-@l_len**2..-1].ave(@l_len**2)[-1]
-        @lama = @kama
+        @kama = closes[-1]
+        @lama = closes[-1]
       else
         @kama = @kama + alpha * (closes[-1] - @kama)
-        @lama = @lama + 0.5 * alpha * (closes[-1] - @lama)
+        @lama = @lama + 0.5 * alpha * (@kama - @lama)
       end
       [@kama, @lama]
     end
@@ -91,7 +96,6 @@ module Kabu
         end
       end
 
-      binding.pry
       if @pkama and @plama
         if @kama > @lama and @pkama <= @plama
           return Action::Buy.new(code, date, open, 1)
