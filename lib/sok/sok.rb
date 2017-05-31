@@ -1,6 +1,7 @@
 module Kabu
   class Sok < ActiveRecord::Base
     belongs_to :company
+    has_one :split
     validates_uniqueness_of :company_id, scope: :date, allow_nil: false
     validates :company, presence: true
     validates :date, presence: true
