@@ -160,28 +160,6 @@ module Kabu
       results
     end
 
-    def kama(n,s_length, l_length)
-      er = (closes[-1] - closes[-n]).abs / closes[-n-1,-1].diff.abs.sum
-      alpha = (er*(2.0/(s_length+1) - 2.0/(l_length+1)) + 2.0/(l_length+1)) ** 2
-      if not @kama or not @lama
-        @kama = closes[-l_length**2..-1].ave(l_length**2)[-1]
-      else
-        @kama = @kama + alpha * (closes[-1] - @kama)
-      end
-      @kama
-    end
-
-    def lama(n,s_length, l_length,beta=0.5)
-      er = (closes[-1] - closes[-n]).abs / closes[-n-1..-1].diff.abs.sum
-      alpha = (er*(2.0/(s_length+1) - 2.0/(l_length+1)) + 2.0/(l_length+1)) ** 2
-      if not @lama or not @lama
-        @lama = closes[-l_length**2..-1].ave(l_length**2)[-1]
-      else
-        @lama = @lama + alpha * beta * (closes[-1] - @lama)
-      end
-      @lama
-    end
-
     def ravi(s_length, l_length)
       l_ave = self.ave(l_length)
       s_ave = self.ave(s_length)[-l_ave.length..-1]
