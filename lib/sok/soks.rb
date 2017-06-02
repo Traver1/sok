@@ -197,6 +197,19 @@ module Kabu
       results
     end
 
+    def vidya(n,s_len,l_len)
+      results = Soks[self[0]]
+      alpha = 2.0 / (n + 1)
+      self[1..-1].each_cons(l_len) do |values|
+        l_dev = Soks[*values].dev(l_len)[-1]
+        s_dev = Soks[*values[-s_len..-1]].dev(s_len)[-1]
+        vi = s_dev / l_dev
+        vi = 1 if vi > 1 
+        results << results.last + alpha * vi * (values[-1] - results.last)
+      end
+      results
+    end
+
     def cumu
       sum = 0
       self.map do |value|
