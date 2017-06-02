@@ -102,23 +102,33 @@ module Kabu
     end
 
     def self.average_profit(records)
-      self.profit(records) / self.wins(records)
+      w = self.wins(records)
+      w > 0 ?
+        self.profit(records) / w :
+        0
     end
 
     def self.average_loss(records)
-      self.loss(records) / self.looses(records)
+      l = self.looses(records)
+      l > 0 ?
+      self.loss(records) / l :
+      0
     end
 
     def self.average_posess_term_of_win(records)
-      records.inject(0) do |sum,record|
+      s = records.inject(0) do |sum,record|
         sum += record.profit > 0 ? record.term : 0
-      end / self.wins(records)
+      end
+      w = self.wins(records)
+      w > 0 ?  s / w : 0
     end
 
     def self.average_posess_term_of_loose(records)
-      records.inject(0) do |sum,record|
+      s = records.inject(0) do |sum,record|
         sum += record.profit <= 0 ? record.term : 0
-      end / self.looses(records)
+      end 
+      l = self.looses(records)
+      l > 0 ? s / l : 0
     end
 
     def self.max_drow_down(records)
