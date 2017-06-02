@@ -160,6 +160,19 @@ module Kabu
       results
     end
 
+    def vol(length, ave)
+      results = Soks.new
+      self.reverse.each_cons(length).to_a.each_with_index do |values, i|
+        next if not ave.length - values.length - i >= 0
+        sum = 0
+        values.each_with_index do |value, j|
+          sum += (value - ave[ave.length-1-i-j])** 2
+        end
+        results << Math.sqrt(sum/length)
+      end
+      results.reverse
+    end
+
     def ravi(s_length, l_length)
       l_ave = self.ave(l_length)
       s_ave = self.ave(s_length)[-l_ave.length..-1]
