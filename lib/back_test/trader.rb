@@ -130,6 +130,7 @@ module Kabu
         end
 
         puts "======================================================"
+        puts @records.uniq {|r| r.code}.map{|r|r.code}.join(' ')
         puts "net income:               #{net_income}"
         puts "profit | loss:            #{profit}    | #{loss}"
         puts "average:                  #{average}"
