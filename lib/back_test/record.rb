@@ -98,7 +98,11 @@ module Kabu
     end
 
     def self.average(records)
-      self.net_income(records) / records.length
+      if records.length > 0 
+        self.net_income(records) / records.length
+      else
+        0
+      end
     end
 
     def self.average_profit(records)
