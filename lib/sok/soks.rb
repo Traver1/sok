@@ -210,6 +210,18 @@ module Kabu
       results
     end
 
+    def kama(n,s_len,l_len)
+      results = Soks[self[0]]
+      kama = self[0]
+      self[1..-1].each_cons(n+1) do |values|
+        er = (values[-1] - values[-n]) / Soks[*values].diff.abs.sum
+        alpha = (er*(2.0/(s_len+1) - 2.0/(l_len+1)) + 2.0/(l_len+1)) ** 2
+        kama = kama + alpha * (values[-1] - kama)
+        results << kama
+      end
+      results
+    end
+
     def cumu
       sum = 0
       self.map do |value|
