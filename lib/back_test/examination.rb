@@ -43,6 +43,7 @@ module Kabu
     def plot_recorded_chart(strategy, code, chart, dir)
       trader = Trader.new
       trader.percent = true
+      strategy.setup if strategy.respond_to? :setup
       position =nil
       soks = Sok.joins(:company).where('companies.code=?',code).order('date')
       soks.each_cons(strategy.length) do |sok|
