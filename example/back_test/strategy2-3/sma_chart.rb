@@ -1,5 +1,11 @@
 class SmaChart
 
+  def initialize
+    @all_vidyas = {}
+    @all_dates = {}
+    @all_vdevs  = {}
+  end
+
   def plot(record, file_path)
     soks = Sok.joins(:company).where('companies.code = ? and date >= ? and date <= ?',
                                      record.code,
@@ -9,8 +15,16 @@ class SmaChart
     values =Soks.parse(soks, :open, :high, :low, :close)
     opens = values[0]
 
-    l_ave = values[3].ave(36)
-    s_ave = values[3].ave(9)
+    if @all_vidyas[record.code].nil?
+      tmp_value = Sok.joins(:company).where('companies.code = ?', record.code)
+      tmp_date, tmp_value = Soks.parse(tmp_value,:date, :close)
+      @all_vidyas[record.code] = tmp_value.kama(10,4,30)
+      min = @all_vidyas[record.code].length
+      @all_dates[record.code] = tmp_date[-min..-1]
+    end
+
+    index = @all_dates[record.code].index(dates.last)
+    vidyas = @all_vidyas[record.code][0..index]
 
     marks = Soks.new
     dates.zip(opens).each do |date, open|
@@ -29,7 +43,7 @@ class SmaChart
       mark_point = '11'
     end
 
-    dates, values, marks, l_ave, s_ave = Soks.cut_off_tail(dates, values,  marks, l_ave, s_ave)
+    dates, values, marks, vidyas = Soks.cut_off_tail(dates, values, marks, vidyas )
     up_stick, down_stick = values.split_up_and_down_sticks
 
     Numo.gnuplot do
@@ -37,14 +51,14 @@ class SmaChart
       set terminal: 'jpeg'
       set output:  file_path
       set yrange: values.yrange
+      set ytics: :nomirror
+      set y2tics: true
       set xtics: dates.xtics
       set grid: true
       plot [dates.x, *up_stick.y, with: :candlesticks, lt: 6, notitle: true],
         [dates.x, *down_stick.y, with: :candlesticks, lt: 7, notitle: true],
         [dates.x, marks.y, with: :points, notitle: true, pt: mark_point, ps: 2, lc: "'dark-green'"],
-        [dates.x, l_ave.y, with: :lines, notitle: true, lc: "'salmon'"],
-        [dates.x, s_ave.y, with: :lines, notitle: true, lc: "'salmon'"]
+        [dates.x, vidyas.y, with: :lines, notitle: true, lc: "'salmon'"]
     end
   end
 end
-
