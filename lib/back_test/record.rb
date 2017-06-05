@@ -32,7 +32,7 @@ module Kabu
 
     def self.profit_factor(records)
       los = Record.loss(records).abs
-      los > 0 ? Record.profit(records) / los : nil
+      los > 0 ? Record.profit(records) / los : 0
     end
 
     def self.max_profit(records)
