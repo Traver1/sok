@@ -214,6 +214,19 @@ module Kabu
       results
     end
 
+    def stc(n, value = nil)
+      results = Soks.new
+      self.each_cons(n) do |soks|
+        max, min = Soks[*soks].high(soks.length)[-1], Soks[*soks].low(soks.length)[-1]
+        if value
+          results << (value - min).to_f / (max - min ) * 100
+        else
+          results << (soks.last.close - min).to_f / (max - min ) * 100
+        end
+      end
+      results
+    end
+
     def vidya(n,s_len,l_len)
       results = Soks[self[0]]
       alpha = 2.0 / (n + 1)
