@@ -126,6 +126,23 @@ module Kabu
       Soks[aves, b_bands, u_bands, devs]
     end
 
+    def cor(other, length)
+      results = Soks.new
+      self.zip(other).to_a.each_cons(length) do |values|
+        x,y,xy = 0,0,0
+        t, o = values.transpose
+        xa = t.sum / t.length
+        ya = t.sum / t.length
+        values.each do |a,b|
+          x += (a-xa) ** 2
+          y += (b-ya) ** 2
+          xy = (a-xa) * (b-ya)
+        end
+        results << xy / Math.sqrt(x) / Math.sqrt(y)
+      end
+      results
+    end
+
     def diff(length=2)
       results = Soks.new
       self.each_cons(length) do |values|
