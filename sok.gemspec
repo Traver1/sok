@@ -30,4 +30,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "activerecord-import", "~> 0.18.2"
   spec.add_development_dependency "validates_timeliness", "~> 3.0"
   spec.add_development_dependency "numo-gnuplot", "~>0.2.2"
+  spec.add_development_dependency "numo-narray", "~>0.9.0"
 end

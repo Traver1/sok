@@ -1,6 +1,7 @@
 require 'bundler'
 require 'open-uri'
 require 'optparse'
+require 'matrix'
 Bundler.require
 Dir[File.expand_path('../sok', __FILE__) << '/*.rb'].each do |file|
   require file
@@ -9,6 +10,9 @@ Dir[File.expand_path('../back_test', __FILE__) << '/*.rb'].each do |file|
   require file
 end
 Dir[File.expand_path('../back_test/strategy', __FILE__) << '/*.rb'].each do |file|
+  require file
+end
+Dir[File.expand_path('../kalman', __FILE__) << '/*.rb'].each do |file|
   require file
 end
 
