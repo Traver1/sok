@@ -279,12 +279,14 @@ module Kabu
       max = strategies.inject(0) {|m,s|[m,s.length].max}
       com_soks(companies).each_cons(max) do |days|
         validate_order days
+        date = days[-1].select {|sok| sok}.first.date
         strategies.each do |strategy|
           env = {}
-          com = days[-1].select {|sok| sok.company.code == strategy.code}[0]
-          i = days[-1].index com
+          com = days[-1].select {|sok| sok.company.code == strategy.code}
+          next if not com 
+          i = days[-1].index com[0]
           env[:code] = strategy.code
-          env[:date] = days[-1].select {|sok| sok}.first.date
+          env[:date] = date
           positions = @trader.positions.select {|p| p.code == strategy.code}
           env[:position] = positions.any? ? positions[0] : nil
           env[:capital] = @trader.capital(false)
@@ -293,8 +295,8 @@ module Kabu
           strategy.set_env(env[:soks],env)
           action = strategy.decide(env)
           @trader.receive [action].flatten
-          position = @trader.positions.any? ? @trader.positions[0] : nil
         end
+        puts [date, @trader.capital(false)].join(' ')
       end
       @trader.summary
       @trader.save(dir)
@@ -311,7 +313,7 @@ module Kabu
       end
       results.length.times do |i|
         (maxl-results[i].length).times do
-          resutls[i].insert(0,nil)
+          results[i].insert(0,nil)
         end
       end
       results.transpose
