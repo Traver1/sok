@@ -4,7 +4,7 @@ include Kabu
 codes = (201..233).map {|i| "I#{i}"}
 exam = Examination2.new
 strategies = codes.map do |c|
-  s = ExpMaStrategy.new
+  s = BBTAt.new
   s.code = c
   s
 end

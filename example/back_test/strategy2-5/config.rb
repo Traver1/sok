@@ -4,7 +4,7 @@ include Kabu
 
 @code = ARGV[0]
 @code ||= "I201"
-@strategy = ExpMaStrategy.new
+@strategy = BBTAt.new
 
 
 dirname = File.basename File.dirname(__FILE__)

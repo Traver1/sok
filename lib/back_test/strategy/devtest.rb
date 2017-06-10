@@ -4,12 +4,12 @@ module Kabu
   class DevTAt
   end
 
-  class ExpMaStrategy
+  class BBTAt
 
     attr_accessor :length, :all_data, :code
 
     def initialize
-      @length = 301
+      @length = 102
     end
 
     def set_env(soks,env)
@@ -19,17 +19,6 @@ module Kabu
     end
 
     def setup
-      @a = 1.0 / 2
-      @b = 1.0 / 38
-      @c = 0.001
-      @d = []
-      @t = []
-      @k = []
-      @is_buy = false
-      @is_sell = false
-      @w = Soks[0]
-      @max = Soks[0]
-      @min = Soks[0]
     end
 
     def decide(env)
@@ -42,29 +31,6 @@ module Kabu
       capital = env[:capital]
       com = env[:com]
 
-      if @k.empty?
-        @k << [closes[-1],closes[-1],closes[-1]]
-      else
-        @k << [@k.last[0] + @a * (-@k.last[0] + closes[-1]),
-               @k.last[1] + @b * (-@k.last[1] + closes[-1]),
-               @k.last[1] + @c * (-@k.last[1] + closes[-1])]
-      end
-      return Action::None.new(code,open) if @k.length < 100
-
-      @d << (@k[-1][1] - @k[-1][2]) / @k[-1][2] * 100 
-      @t << (@k[-1][0] - @k[-1][1]) / @k[-1][1] * 100
-
-      if (@k[-1][0] - @k[-1][1]) * (@k[-2][0] - @k[-2][1]) < 0
-        @max << 0
-        @min << 0
-        @w << 1
-      else
-        @max[-1] = [@max[-1],@t[-1]].max
-        @min[-1] = [@min[-1],@t[-1]].min
-        @w[-1] += 1
-      end
-      return Action::None.new(code,open) if @w.length < 4
-
       if capital
         volume = capital / open
         volume = (volume / com.unit).to_i * com.unit
@@ -72,35 +38,70 @@ module Kabu
         volume = 1
       end
 
-      cma = @max[-4..-2].max * 0.2
-      cmi = @max[-4..-2].min * 0.2
-      @is_sell = (@t[-1] < cma and @t[-2] > cma)
-      @is_buy = (@t[-1] > cmi and @t[-2] < cmi)
-      wm =  @w[-4..-2].ave(3)[-1]
+      s_ave, s_btm, s_top, s_dev = closes[-26..-1].bol(25,1.0)
+      l_ave, l_btm, l_top, l_dev = closes[-51..-1].bol(50,1.5) 
+      sbu = (closes[-1] > s_btm[-1] and closes[-2] < s_btm[-2])
+      std = (closes[-1] < s_top[-1] and closes[-2] > s_top[-2])
+
+      stu = (closes[-1] > s_top[-1] and closes[-2] < s_top[-2])
+      sbd = (closes[-1] < s_btm[-1] and closes[-2] > s_btm[-2])
+
+      st  = closes[-1] > s_top[-1]
+      sb  = closes[-1] < s_btm[-1]
+
+      avu = (closes[-1] > s_ave[-1] and closes[-2] < s_ave[-2])
+      avd = (closes[-1] < s_ave[-1] and closes[-2] > s_ave[-2])
+
+      efd = s_dev[-1] / closes[-1] * 100 > 1
+
+      if not @trend
+        @trend = 
+          ((closes[-1] < l_btm[-1] or closes[-1] > l_top[-1]) and l_dev[-1] > l_dev[-2])
+      else
+        @trend = l_dev[-1] > l_dev[-2]
+      end
+
       if position
-        if wm / 4 < position.term 
-          if position.sell? 
+        if @trend
+          if st and position.sell?
             return Action::Buy.new(code, date, open, position.volume)
-          elsif position.buy? 
+          elsif sb and position.buy?
             return Action::Sell.new(code, date, open, position.volume)
+          else
+            return Action::None.new(code,open)
+          end
+        else
+          if position.sell? and sbd
+            return Action::Buy.new(code, date, open, position.volume)
+          elsif position.buy? and stu 
+            return Action::Sell.new(code, date, open, position.volume)
+          elsif position.sell? and avu
+            return Action::Buy.new(code, date, open, position.volume)
+          elsif position.buy? and avd
+            return Action::Sell.new(code, date, open, position.volume)
+          elsif position.gain(closes[-1], position.volume) < -3
+            if position.sell? 
+              return Action::Buy.new(code, date, open, position.volume)
+            elsif position.buy? 
+              return Action::Sell.new(code, date, open, position.volume)
+            end
+          else
+            return Action::None.new(code,open)
+          end
+        end
+      else
+        if not @trend
+          if sbu and efd
+            return Action::Buy.new(code, date, open, volume)
+          elsif std and efd
+            return Action::Sell.new(code, date, open, volume)
+          else
+            return Action::None.new(code,open)
           end
         else
           return Action::None.new(code,open)
         end
-      elsif wm / @w[-4..-2].ave(3)[-1] > 0.01 and wm > 40
-        if @is_buy 
-          return Action::Buy.new(code, date, open, volume)
-        elsif @is_sell 
-          return Action::Sell.new(code, date, open, volume)
-        else
-          return Action::None.new(code,open)
-        end
-      else
-        return Action::None.new(code,open)
       end
     end
-  end
-
-  class ExpMaStrategy2 < ExpMaStrategy
   end
 end
