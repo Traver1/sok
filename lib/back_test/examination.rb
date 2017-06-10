@@ -267,26 +267,34 @@ module Kabu
 
     attr_accessor :trader, :from, :to
 
-    def plot_summary(strategy,codes, dir)
+    def plot_summary(strategies, dir)
+      codes = strategies.map {|s| s.code}
       companies = Company.where('code in (?)', codes)
       if not @trader
         @trader = Trader.new
         @trader.bunkrupt = true
         @trader.percent = true
       end
-      strategy.setup if strategy.respond_to? :setup
-      com_soks(companies).each_cons(strategy.length) do |days|
+      strategies.each {|s| s.setup if s.respond_to? :setup}
+      max = strategies.inject(0) {|m,s|[m,s.length].max}
+      com_soks(companies).each_cons(max) do |days|
         validate_order days
-        env = {}
-        env[:codes] = days[-1].map{|sok| sok ? sok.company.code : nil}.compact
-        env[:date] = days[-1].select {|sok| sok}.first.date
-        env[:positions] = @trader.positions
-        env[:capital] = @trader.capital(false)
-        env[:coms] = days.transpose.map { |sok| Soks[*sok] }
-        strategy.set_env(env[:coms],env)
-        action = strategy.decide(env)
-        @trader.receive [action].flatten
-        position = @trader.positions.any? ? @trader.positions[0] : nil
+        strategies.each do |strategy|
+          env = {}
+          com = days[-1].select {|sok| sok.company.code == strategy.code}[0]
+          i = days[-1].index com
+          env[:code] = strategy.code
+          env[:date] = days[-1].select {|sok| sok}.first.date
+          positions = @trader.positions.select {|p| p.code == strategy.code}
+          env[:position] = positions.any? ? positions[0] : nil
+          env[:capital] = @trader.capital(false)
+          env[:com] = days[-1][i].company
+          env[:soks] = Soks[*days.transpose[i]]
+          strategy.set_env(env[:soks],env)
+          action = strategy.decide(env)
+          @trader.receive [action].flatten
+          position = @trader.positions.any? ? @trader.positions[0] : nil
+        end
       end
       @trader.summary
       @trader.save(dir)
