@@ -252,6 +252,14 @@ module Kabu
       results
     end
 
+    def exp_ave(a)
+      results = Soks[self[0]]
+      self[1..-1].each do |value|
+        results << results.last + a * ( value - results.last)
+      end
+      results
+    end
+
     def cumu
       sum = 0
       self.map do |value|
