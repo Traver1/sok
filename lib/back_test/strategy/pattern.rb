@@ -1,15 +1,77 @@
 module Kabu
   include Numo
 
-  class DevTAt
-  end
-
-  class BBTAt
-
-    attr_accessor :length, :all_data, :code
+  class PatternStrategy
+    attr_accessor :length, :all_data, :code, :pattern
 
     def initialize
       @length = 102
+    end
+
+    def set_env(soks,env)
+      env[:closes] = Soks.parse(soks[0..-2], :close)
+      env[:open] = soks[-1].open
+      env[:soks] = soks[0..-2]
+    end
+
+    def decide(env)
+      closes = env[:closes]
+      open = env[:open]
+      date = env[:date]
+      code = env[:code]
+      soks = env[:soks]
+      position = env[:position]
+      capital = env[:capital]
+      com = env[:com]
+
+      buy_patterns =  [Pattern.double_bottom1,
+                       Pattern.double_bottom2,
+                       Pattern.double_bottom3,
+                       Pattern.pull_back1,
+                       Pattern.pull_back2,
+                       Pattern.peak_out1,
+      ]
+
+      if capital
+        volume = capital / com.unit / open
+        volume = volume.to_i * com.unit
+      else
+        volume = 1
+      end
+
+      buy_patterns.each do |p| p.thr = 1 end
+      if position
+        highs = soks[-15..-1].high(14)
+        high = (not highs[-1] == soks[-1].high and highs[-2] == soks[-2].high)
+        gain = position.gain(closes[-1],1)
+        if position.buy?
+          if high
+            return Action::Sell.new(code, date, open, position.volume)
+          elsif position.term > 5 and gain < 0
+            return Action::Sell.new(code, date, open, position.volume)
+          end
+        end
+        return Action::None.new(code,  open)
+      else
+        low = soks[-11..-1].low(10)
+        high = soks[-11..-1].high(10)
+        buy_patterns.each do |pattern|
+          if pattern.correspond? closes[-51..-2] and low[-2] == soks[-2].low and 
+            not pattern.correspond? closes[-50..-1] 
+            return Action::Buy.new(code, date, open, volume)
+          end
+        end
+        return Action::None.new(code,  open)
+      end
+    end
+  end
+
+  class PatternStrategyN
+    attr_accessor :length, :all_data, :code, :n, :pattern
+
+    def initialize
+      @length = 102
+      @pattern = Pattern.pull_back1
     end
 
     def set_env(soks,env)
@@ -38,68 +100,18 @@ module Kabu
         volume = 1
       end
 
-      s_ave, s_btm, s_top, s_dev = closes[-26..-1].bol(25,1.0)
-      l_ave, l_btm, l_top, l_dev = closes[-51..-1].bol(50,1.5) 
-      sbu = (closes[-1] > s_btm[-1] and closes[-2] < s_btm[-2])
-      std = (closes[-1] < s_top[-1] and closes[-2] > s_top[-2])
-
-      stu = (closes[-1] > s_top[-1] and closes[-2] < s_top[-2])
-      sbd = (closes[-1] < s_btm[-1] and closes[-2] > s_btm[-2])
-
-      st  = closes[-1] > s_top[-1]
-      sb  = closes[-1] < s_btm[-1]
-
-      avu = (closes[-1] > s_ave[-1] and closes[-2] < s_ave[-2])
-      avd = (closes[-1] < s_ave[-1] and closes[-2] > s_ave[-2])
-
-      efd = s_dev[-1] / closes[-1] * 100 > 1
-
-      if not @trend
-        @trend = 
-          ((closes[-1] < l_btm[-1] or closes[-1] > l_top[-1]) and l_dev[-1] > l_dev[-2])
-      else
-        @trend = l_dev[-1] > l_dev[-2]
-      end
-
       if position
-        if @trend
-          if st and position.sell?
-            return Action::Buy.new(code, date, open, position.volume)
-          elsif sb and position.buy?
-            return Action::Sell.new(code, date, open, position.volume)
-          else
-            return Action::None.new(code,open)
-          end
+        if position.term >= @n
+          return Action::Sell.new(code, date, open, 1)
         else
-          if position.sell? and sbd
-            return Action::Buy.new(code, date, open, position.volume)
-          elsif position.buy? and stu 
-            return Action::Sell.new(code, date, open, position.volume)
-          elsif position.sell? and avu
-            return Action::Buy.new(code, date, open, position.volume)
-          elsif position.buy? and avd
-            return Action::Sell.new(code, date, open, position.volume)
-          elsif position.gain(closes[-1], position.volume) < -3
-            if position.sell? 
-              return Action::Buy.new(code, date, open, position.volume)
-            elsif position.buy? 
-              return Action::Sell.new(code, date, open, position.volume)
-            end
-          else
-            return Action::None.new(code,open)
-          end
+          return Action::None.new(code,  open)
         end
       else
-        if not @trend
-          if sbu and efd
-            return Action::Buy.new(code, date, open, volume)
-          elsif std and efd
-            return Action::Sell.new(code, date, open, volume)
-          else
-            return Action::None.new(code,open)
-          end
+        low = soks[-10..-1].low(10)[-1]
+        if @pattern.correspond? closes[-50..-1] and low == soks[-1].low
+          return Action::Buy.new(code, date, open, 1)
         else
-          return Action::None.new(code,open)
+          return Action::None.new(code,  open)
         end
       end
     end
