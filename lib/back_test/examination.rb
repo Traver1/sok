@@ -6,11 +6,12 @@ module Kabu
     def n(strategy)
       wins = []
       codes = []
+      records = Soks.new(6,[])
       companies = Company.where('code like ?', 'I2%').order(:code).select(:code)
       companies.each do |company|
         wins << []
         codes << company.code
-        [5,10,15,20,30,50].each do |n|
+        [5,10,15,20,30,50].each_with_index do |n,i|
           trader = Trader.new
           trader.percent = true
           strategy.setup if strategy.respond_to? :setup
@@ -28,16 +29,14 @@ module Kabu
             position = trader.positions.any? ? trader.positions[0] : nil
           end
           wins[-1] << Record.win_rate(trader.records)
+          records[i] += trader.records
           trader.summary
         end
       end
       wins.zip(codes).each do |win,code|
         puts "|#{[code, win.map{|w|w.round(2).to_s.ljust(4,'0')}].flatten.join("|")}|"
       end
-      average = wins.transpose.map do |ns|
-        ns.inject(0) {|ret, win| ret += win.to_f }/ ns.length
-      end
-      puts "#{["    ", average.map{|a|a.round(2).to_s.ljust(4,'0')}].flatten.join("|")}|"
+      puts "#{["    ", records.map{|a|Record.win_rate(a).round(2).to_s.ljust(4,'0')}].flatten.join("|")}|"
     end
 
     def plot_recorded_chart(strategy, code, chart, dir)
