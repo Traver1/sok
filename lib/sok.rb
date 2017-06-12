@@ -15,6 +15,9 @@ end
 Dir[File.expand_path('../kalman', __FILE__) << '/*.rb'].each do |file|
   require file
 end
+Dir[File.expand_path('../pattern', __FILE__) << '/*.rb'].each do |file|
+  require file
+end
 
 env = (ENV["RAILS_ENV"] or "development")
 
