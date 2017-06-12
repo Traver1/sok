@@ -11,9 +11,6 @@ class SmaChart
     values =Soks.parse(soks, :open, :high, :low, :close)
     opens = values[0]
 
-    s_ave, s_btm, s_top, s_dev = values[3].bol(25)
-    l_ave, l_btm, l_top, l_dev = values[3].bol(50)
-
     marks = Soks.new
     dates.zip(opens).each do |date, open|
       marks << case date
@@ -31,8 +28,7 @@ class SmaChart
       mark_point = '11'
     end
 
-    dates, values, marks, s_ave, s_btm, s_top, s_dev, l_ave, l_btm, l_top, l_dev =
-      Soks.cut_off_tail(dates, values, marks, s_ave, s_btm, s_top, s_dev, l_ave, l_btm, l_top, l_dev)
+    dates, values, marks = Soks.cut_off_tail(dates, values, marks)
     up_stick, down_stick = values.split_up_and_down_sticks
 
     Numo.gnuplot do
@@ -46,13 +42,7 @@ class SmaChart
       set grid: true
       plot [dates.x, *up_stick.y, with: :candlesticks, lt: 6, notitle: true],
         [dates.x, *down_stick.y, with: :candlesticks, lt: 7, notitle: true],
-        [dates.x, marks.y, with: :points, notitle: true, pt: mark_point, ps: 2, lc: "'dark-green'"],
-        [dates.x, s_ave.y, with: :lines, notitle: true, lc: "'blue'"], 
-        [dates.x, s_btm.y, with: :lines, notitle: true, lc: "'blue'"],
-        [dates.x, s_top.y, with: :lines, notitle: true, lc: "'blue'"], 
-        [dates.x, l_ave.y, with: :lines, notitle: true, lc: "'red'"],
-        [dates.x, l_btm.y, with: :lines, notitle: true, lc: "'red'"], 
-        [dates.x, l_top.y, with: :lines, notitle: true, lc: "'red'"]
+        [dates.x, marks.y, with: :points, notitle: true, pt: mark_point, ps: 2, lc: "'dark-green'"]
     end
   end
 end
