@@ -275,30 +275,46 @@ module Kabu
         @trader.percent = true
       end
       strategies.each {|s| s.setup if s.respond_to? :setup}
+      strategies.each {|s| s.company = companies.select{|c|c.code == s.code}.first}
       max = strategies.inject(0) {|m,s|[m,s.length].max}
-      com_soks(companies).each_cons(max) do |days|
-        validate_order days
-        date = days[-1].select {|sok| sok}.first.date
+      dates = Sok.joins(:company).where('companies.code in (?)',codes).order(:date).select(:date).uniq
+      soks_pool = codes.inject({}) {|h,c| h.update c=>[]}
+      dates.each do |sok|
+        date = sok.date
+        select_values(codes, date, soks_pool, max)
+        strategies.sort!
         strategies.each do |strategy|
-          env = {}
-          com = days[-1].select {|sok| sok.company.code == strategy.code}
-          next if not com 
-          i = days[-1].index com[0]
-          env[:code] = strategy.code
-          env[:date] = date
-          positions = @trader.positions.select {|p| p.code == strategy.code}
-          env[:position] = positions.any? ? positions[0] : nil
-          env[:capital] = @trader.capital(false)
-          env[:com] = days[-1][i].company
-          env[:soks] = Soks[*days.transpose[i]]
-          strategy.set_env(env[:soks],env)
-          action = strategy.decide(env)
+          next if soks_pool[strategy.code].length < max
+          set_env(date, soks_pool, strategies)
+          action = strategy.decide(nil)
           @trader.receive [action].flatten
         end
         puts [date, @trader.capital(false)].join(' ')
       end
       @trader.summary
       @trader.save(dir)
+    end
+
+    def set_env(date, soks_pool, strategies)
+      strategies.each do |strategy|
+        next if soks_pool[strategy.code].empty? or not soks_pool[strategy.code].last.date == date
+        strategy.date = date
+        positions = @trader.positions.select {|p| p.code == strategy.code}
+        strategy.position = positions.any? ? positions[0] : nil
+        strategy.capital = @trader.capital(false)
+        strategy.soks = Soks[*soks_pool[strategy.code]]
+        strategy.set_env
+      end
+    end
+
+    def select_values(codes, date, soks_pool, max)
+      Sok.joins(:company).where('companies.code in (?) and date = ?', codes, date).each do |sok|
+        pool = soks_pool[sok.company.code]
+        sok.adjust_values! pool.last.rate if pool.any?
+        pool << sok
+        pool.shift if pool.length > max
+      end
+      soks_pool
     end
 
     # length = Companies.length    length = Soks.length
