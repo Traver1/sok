@@ -1,8 +1,8 @@
 module Kabu
 
-  class Vidya
+  class Vidya < Strategy
 
-    attr_accessor :length, :l_len, :s_len
+    attr_accessor :l_len, :s_len, :closes, :open
 
     def initialize
       @length = 40
@@ -12,9 +12,9 @@ module Kabu
       @vidya = nil
     end
 
-    def set_env(soks, env)
-      env[:closes] = Soks.parse(soks[0..-2],:close)
-      env[:open] = soks[-1].open
+    def set_env
+      @closes = Soks.parse(soks[0..-2],:close)
+      @open = soks[-1].open
     end
 
     def setup
@@ -22,12 +22,6 @@ module Kabu
     end
 
     def decide(env)
-      code = env[:code]
-      open = env[:open]
-      date = env[:date]
-      position = env[:position]
-      closes = env[:closes]
-
       @vidya = calc_ave(closes)
       is_buy = closes[-1] > @vidya
       is_sell = closes[-1] < @vidya
@@ -68,15 +62,9 @@ module Kabu
 
   class VidyaN < Vidya
 
-    attr_accessor :length, :l_len, :s_len, :n
+    attr_accessor :l_len, :s_len
 
     def decide(env)
-      code = env[:code]
-      open = env[:open]
-      date = env[:date]
-      position = env[:position]
-      closes = env[:closes]
-
       @vidya = calc_ave(closes)
       is_buy = closes[-1] > @vidya
       is_sell = closes[-1] < @vidya

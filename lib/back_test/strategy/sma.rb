@@ -1,8 +1,8 @@
 module Kabu
 
-  class Sma
+  class Sma < Strategy
 
-    attr_accessor :length, :l_len, :s_len
+    attr_accessor :l_len, :s_len, :closes, :open
 
     def initialize
       @length = 52
@@ -22,9 +22,9 @@ module Kabu
       @s_len_tmp = s_len
     end
 
-    def set_env(soks, env)
-      env[:closes] = Soks.parse(soks[0..-2],:close)
-      env[:open] = soks[-1].open
+    def set_env
+      @closes = Soks.parse(soks[0..-2],:close)
+      @open = soks[-1].open
     end
 
     def setup
@@ -33,13 +33,7 @@ module Kabu
     end
 
     def decide(env)
-      code = env[:code]
-      open = env[:open]
-      date = env[:date]
-      position = env[:position]
-      closes = env[:closes]
-
-      s_ave, l_ave = calc_ave(closes)
+      s_ave, l_ave = calc_ave(@closes)
 
       if position
         if (s_ave[-1] > l_ave[-1]) and position.sell?
@@ -60,44 +54,10 @@ module Kabu
       end
     end
 
-    def calc_ave(closes)
-      l_ave = closes[-@l_len.to_i..-1].ave(@l_len.to_i)
-      s_ave = closes[-@s_len.to_i..-1].ave(@s_len.to_i)
+    def calc_ave(c)
+      l_ave = c[-@l_len.to_i..-1].ave(@l_len.to_i)
+      s_ave = c[-@s_len.to_i..-1].ave(@s_len.to_i)
       [s_ave, l_ave]
     end
   end
-
-  class SmaDbsN < SmaDbs
-
-    attr_accessor :length, :n
-
-    def decide(env)
-      code = env[:code]
-      open = env[:open]
-      date = env[:date]
-      position = env[:position]
-      closes = env[:closes]
-
-      s_ave, l_ave = calc_ave(closes)
-
-      if position
-        if position.buy? and @n <= position.term
-          return Action::Sell.new(code, date, open, 1)
-        elsif position.sell? and @n <= position.term
-          return Action::Buy.new(code, date, open, 1)
-        else
-          return Action::None.new(code,open)
-        end
-      end
-
-      if s_ave[-1] > l_ave[-1]
-        return Action::Buy.new(code, date, open, 1)
-      elsif s_ave[-1] < l_ave[-1]
-        return Action::Sell.new(code, date, open, 1)
-      else
-        return Action::None.new(code,open)
-      end
-    end
-  end
-
 end

@@ -4,7 +4,7 @@ include Kabu
 code = "I201"
 com = Company.find_by_code code
 exam = Examination.new
-strategy = MoneyManageHukuri.new
+strategy = MoneyManage.new
 dir = File.expand_path "../../../data/strategy1-5/chart/#{code}"
 exam.trader = Trader.new
 exam.trader.percent = false

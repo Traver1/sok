@@ -2,7 +2,7 @@ module Kabu
 
   class KamaEmb < KamaLama
 
-    attr_accessor :kmasa_l, :t_stop_l, :length
+    attr_accessor :kmasa_l, :t_stop_l
 
     def initialize
       @kamas = Soks.new
@@ -18,19 +18,7 @@ module Kabu
       @length = [@m,@length].max
     end
 
-    def set_env(soks, env)
-      super
-      env[:soks] = soks[0..-2]
-    end
-
     def decide(env)
-      code = env[:code]
-      open = env[:open]
-      date = env[:date]
-      position = env[:position]
-      closes = env[:closes]
-      soks = env[:soks]
-
       @kama, @lama = calc_ave(closes)
       @kamas << @kama
       return Action::None.new(code,open) if @kamas.length < @kamas_l
@@ -93,12 +81,6 @@ module Kabu
     end
 
     def decide(env)
-      code = env[:code]
-      open = env[:open]
-      date = env[:date]
-      position = env[:position]
-      closes = env[:closes]
-
       @kama, @lama = calc_ave(closes)
       @kamas << @kama
       return Action::None.new(code,open) if @kamas.length < @kamas_l

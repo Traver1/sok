@@ -11,26 +11,22 @@ module Kabu
       companies.each do |company|
         wins << []
         codes << company.code
+        strategy.code = company.code
         [5,10,15,20,30,50].each_with_index do |n,i|
-          trader = Trader.new
-          trader.percent = true
+          @trader = Trader.new
+          @trader.percent = true
           strategy.setup if strategy.respond_to? :setup
           strategy.n = n
-          position =nil
+          position = nil
           soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
           soks.each_cons(strategy.length) do |sok|
-            env = {}
-            env[:code] = company.code
-            env[:date] = sok[-1].date
-            env[:position] = position
-            strategy.set_env(Soks[*sok.to_a],env)
-            action = strategy.decide(env)
-            trader.receive [action]
-            position = trader.positions.any? ? trader.positions[0] : nil
+            set_env(sok.last.date, sok, strategy)
+            action = strategy.decide(nil)
+            @trader.receive [action]
           end
-          wins[-1] << Record.win_rate(trader.records)
-          records[i] += trader.records
-          trader.summary
+          wins[-1] << Record.win_rate(@trader.records)
+          records[i] += @trader.records
+          @trader.summary
         end
       end
       wins.zip(codes).each do |win,code|
@@ -40,22 +36,17 @@ module Kabu
     end
 
     def plot_recorded_chart(strategy, code, chart, dir)
-      trader = Trader.new
-      trader.percent = true
+      @trader = Trader.new
+      @trader.percent = true
+      strategy.code = code
       strategy.setup if strategy.respond_to? :setup
-      position =nil
       soks = Sok.joins(:company).where('companies.code=?',code).order('date')
       soks.each_cons(strategy.length) do |sok|
-        env = {}
-        env[:code] = code
-        env[:date] = sok[-1].date
-        env[:position] = position
-        strategy.set_env(Soks[*sok.to_a], env)
-        action = strategy.decide(env)
-        trader.receive [action]
-        position = trader.positions.any? ? trader.positions[0] : nil
+        set_env(sok.last.date, sok, strategy)
+        action = strategy.decide(nil)
+        @trader.receive [action]
       end
-      trader.plot_recorded_chart(dir, chart)
+      @trader.plot_recorded_chart(dir, chart)
     end
 
     def deviation(strategy)
@@ -71,24 +62,20 @@ module Kabu
 
       companies.each do |company|
         codes << company.code
-        trader = Trader.new
-        trader.percent = true
+        @trader = Trader.new
+        @trader.percent = true
+        strategy.code = company.code
         strategy.setup if strategy.respond_to? :setup
         position =nil
         soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
         soks.each_cons(strategy.length) do |sok|
-          env = {}
-          env[:code] = company.code
-          env[:date] = sok[-1].date
-          env[:position] = position
-          strategy.set_env(Soks[*sok.to_a], env)
-          action = strategy.decide(env)
-          trader.receive [action]
-          position = trader.positions.any? ? trader.positions[0] : nil
+          set_env(sok.last.date, sok, strategy)
+          action = strategy.decide(nil)
+          @trader.receive [action]
         end
 
-        trader.summary
-        r = trader.records
+        @trader.summary
+        r = @trader.records
         net_incomes << Record.net_income(r)
         dds << Record.max_drow_down(r)
         wins << Record.win_rate(r) * 100
@@ -115,37 +102,33 @@ module Kabu
 
     def mfe(strategy,dir)
       codes = []
-      trader = Trader.new
-      trader.percent = true
+      @trader = Trader.new
+      @trader.percent = true
       companies = Company.where('code like ?', 'I2%').order(:code).select(:code)
       companies.each do |company|
         codes << company.code
-        trader.positions = []
+        @trader.positions = []
+        strategy.code = company.code
         strategy.setup if strategy.respond_to? :setup
         position =nil
         soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
         soks.each_cons(strategy.length) do |sok|
-          env = {}
-          env[:code] = company.code
-          env[:date] = sok[-1].date
-          env[:position] = position
-          strategy.set_env(Soks[*sok.to_a], env)
-          action = strategy.decide(env)
-          trader.receive [action]
-          position = trader.positions.any? ? trader.positions[0] : nil
+          set_env(sok.last.date, sok, strategy)
+          action = strategy.decide(nil)
+          @trader.receive [action]
         end
-        trader.summary
+        @trader.summary
       end
 
       FileUtils.mkdir_p dir
       histgram_chart = Chart::Histgram.new
-      histgram_chart.plot(*Record.best_latent_gain_in_loose(trader.records), dir + '/mfe_loose.jpeg')
-      histgram_chart.plot(*Record.worst_latent_gain_in_win(trader.records), dir + '/mfe_win.jpeg')
-      xb, bests = Record.best_latent_gain_in_loose(trader.records)
+      histgram_chart.plot(*Record.best_latent_gain_in_loose(@trader.records), dir + '/mfe_loose.jpeg')
+      histgram_chart.plot(*Record.worst_latent_gain_in_win(@trader.records), dir + '/mfe_win.jpeg')
+      xb, bests = Record.best_latent_gain_in_loose(@trader.records)
       bests = bests.cumu.insert(0,0)
       xb << Float::NAN
       bests = bests.map {|v| v.to_f/ bests[-1]*100}
-      xw, worsts = Record.worst_latent_gain_in_win(trader.records)
+      xw, worsts = Record.worst_latent_gain_in_win(@trader.records)
       worsts = worsts.cumu.insert(0,0)
       xw << Float::NAN
       worsts = worsts.map {|v| v.to_f/ worsts[-1]*100}
@@ -172,24 +155,20 @@ module Kabu
         records << []
 
         companies.each do |company|
-          trader = Trader.new
-          trader.percent = true
+          @trader = Trader.new
+          @trader.percent = true
+          stop_strategy.code = company.code
           stop_strategy.setup if stop_strategy.respond_to? :setup
           stop_strategy.loss_line = loss_cut_line
           position =nil
           soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
           soks.each_cons(stop_strategy.length) do |sok|
-            env = {}
-            env[:code] = company.code
-            env[:date] = sok[-1].date
-            env[:position] = position
-            stop_strategy.set_env(Soks[*sok.to_a], env)
-            action = stop_strategy.decide(env)
-            trader.receive [action]
-            position = trader.positions.any? ? trader.positions[0] : nil
+            set_env(sok.last.date, sok, stop_strategy)
+            action = stop_strategy.decide(nil)
+            @trader.receive [action]
           end
 
-          r = trader.records
+          r = @trader.records
           net_incomes[-1] << Record.net_income(r)
           max_drow_downs[-1] << Record.max_drow_down(r)
           wins[-1] << Record.wins(r)
@@ -205,23 +184,19 @@ module Kabu
       records << []
 
       companies.each do |company|
-        trader = Trader.new
-        trader.percent = true
+        @trader = Trader.new
+        @trader.percent = true
+        base_strategy.code = company.code
         base_strategy.setup if base_strategy.respond_to? :setup
         position =nil
         soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
         soks.each_cons(base_strategy.length) do |sok|
-          env = {}
-          env[:code] = company.code
-          env[:date] = sok[-1].date
-          env[:position] = position
-          base_strategy.set_env(Soks[*sok.to_a], env)
-          action = base_strategy.decide(env)
-          trader.receive [action]
-          position = trader.positions.any? ? trader.positions[0] : nil
+          set_env(sok.last.date, sok, base_strategy)
+          action = base_strategy.decide(nil)
+          @trader.receive [action]
         end
 
-        r = trader.records
+        r = @trader.records
         net_incomes[-1] << Record.net_income(r)
         max_drow_downs[-1] << Record.max_drow_down(r)
         wins[-1] << Record.wins(r)
@@ -242,23 +217,95 @@ module Kabu
         @trader.bunkrupt = true
         @trader.percent = true
       end
+      strategy.code = code
       strategy.setup if strategy.respond_to? :setup
       position =nil
       soks = Sok.joins(:company).where('companies.code=?',code).order('date')
       soks.each_cons(strategy.length) do |sok|
-        env = {}
-        env[:code] = code
-        env[:date] = sok[-1].date
-        env[:position] = position
-        env[:positions] = @trader.positions
-        env[:capital] = @trader.capital(false)
-        strategy.set_env(Soks[*sok.to_a],env)
-        action = strategy.decide(env)
+        set_env sok[-1].date, sok, strategy
+        action = strategy.decide(nil)
         @trader.receive [action].flatten
-        position = @trader.positions.any? ? @trader.positions[0] : nil
       end
       @trader.summary
       @trader.save(dir)
+    end
+
+    def scramble(strategy, code, n)
+      net_incomes = []
+      dds = []
+      wins = []
+      averages = []
+      pfs = []
+      codes = []
+      trades = []
+
+      com = Company.find_by_code code
+      soks = com.soks
+
+      10.times do 
+
+        diffs = Soks.new
+        shuffled = Soks.new
+
+        soks.each_cons(2) do |prev,curnt|
+          pc = prev.close
+          diffs << [curnt.open/pc, curnt.high/pc, curnt.low/pc, curnt.close/pc]
+        end
+
+        shuffled << soks[-1]
+        (n-1).times do 
+          i = Random.rand(soks.length-1)
+          pc = shuffled[-1].close
+          s = Sok.new
+          s.open = diffs[i][0] * pc
+          s.high = diffs[i][1] * pc
+          s.low = diffs[i][2] * pc
+          s.close = diffs[i][3] * pc
+          shuffled << s
+        end
+
+        @trader = Trader.new
+        @trader.percent = true
+        strategy.setup if strategy.respond_to? :setup
+        position =nil
+        shuffled.each_cons(strategy.length) do |sok|
+          set_env(sok.last.date, sok, strategy)
+          action = strategy.decide(nil)
+          @trader.receive [action]
+        end
+        r = @trader.records
+        net_incomes << Record.net_income(r)
+        dds << Record.max_drow_down(r)
+        wins << Record.win_rate(r) * 100
+        averages << Record.average(r)
+        pfs << Record.profit_factor(r)
+        trades << Record.trades(r)
+        @trader.summary
+      end
+
+      10.times.to_a.zip(net_incomes,trades,wins,pfs,averages,dds).each do |array|
+        puts "|#{array.map{|v| (v.is_a? Float) ? v.round(2) : v}.join("|")}|"
+      end
+
+      indecis = [net_incomes, trades, wins, pfs,averages, dds].map do |vs|
+        (vs.inject(0){|r,v| r+= v}/vs.length).round(1)
+      end 
+      puts "|#{["    ", indecis].flatten.join("|")}|"
+
+      indecis = [net_incomes, trades, wins, pfs,averages, dds].map do |vs|
+        ave = vs.inject(0){|r,v| r+= v}/vs.length
+        (Math.sqrt(vs.inject(0){|r,v|r+=(v-ave)**2}/vs.length)).round(2)
+      end 
+      puts "|#{["    ", indecis].flatten.join("|")}|"
+    end
+
+    def set_env(date, sok, strategy)
+      strategy.date = date
+      strategy.position = @trader.positions.any? ? @trader.positions[0] : nil
+      strategy.capital = @trader.capital(false)
+      strategy.company = sok.last.company
+      strategy.soks = Soks[*sok]
+      strategy.set_env
     end
   end
 

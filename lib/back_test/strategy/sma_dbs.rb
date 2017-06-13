@@ -1,8 +1,8 @@
 module Kabu
 
-  class SmaDbs
+  class SmaDbs < Strategy
 
-    attr_accessor :length
+    attr_accessor :closes, :open
 
     def initialize
       @length = 51
@@ -10,9 +10,9 @@ module Kabu
       @s_len = 12
     end
 
-    def set_env(soks, env)
-      env[:closes] = Soks.parse(soks[0..-2],:close)
-      env[:open] = soks[-1].open
+    def set_env
+      @closes = Soks.parse(soks[0..-2],:close)
+      @open = soks[-1].open
     end
 
     def setup
@@ -21,13 +21,8 @@ module Kabu
     end
 
     def decide(env)
-      code = env[:code]
-      open = env[:open]
-      date = env[:date]
-      position = env[:position]
-      closes = env[:closes]
 
-      s_ave, l_ave = calc_ave(closes)
+      s_ave, l_ave = calc_ave(@closes)
 
       if position
         if (s_ave[-1] > l_ave[-1]) and position.sell?
@@ -48,9 +43,9 @@ module Kabu
       end
     end
 
-    def calc_ave(closes)
-      l_dev = closes[-31..-1].dev(30)
-      s_dev = closes[-21..-1].dev(20)
+    def calc_ave(c)
+      l_dev = c[-31..-1].dev(30)
+      s_dev = c[-21..-1].dev(20)
 
       l_delta = (l_dev[-1] - l_dev[-2]) / l_dev[-1]
       s_delta = (s_dev[-1] - s_dev[-2]) / s_dev[-1]
@@ -71,16 +66,8 @@ module Kabu
 
   class SmaDbsN < SmaDbs
 
-    attr_accessor :length, :n
-
     def decide(env)
-      code = env[:code]
-      open = env[:open]
-      date = env[:date]
-      position = env[:position]
-      closes = env[:closes]
-
-      s_ave, l_ave = calc_ave(closes)
+      s_ave, l_ave = calc_ave(@closes)
 
       if position
         if position.buy? and @n <= position.term
@@ -101,5 +88,4 @@ module Kabu
       end
     end
   end
-
 end

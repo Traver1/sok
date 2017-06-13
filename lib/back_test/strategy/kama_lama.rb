@@ -1,8 +1,8 @@
 module Kabu
 
-  class KamaLama
+  class KamaLama < Strategy
 
-    attr_accessor :length, :s_len, :l_len, :n
+    attr_accessor :s_len, :l_len, :closes, :open
 
     def initialize
       @length = 37
@@ -13,9 +13,9 @@ module Kabu
       @m = 10
     end
 
-    def set_env(soks, env)
-      env[:closes] = Soks.parse(soks[0..-2],:close)
-      env[:open] = soks[-1].open
+    def set_env
+      @closes = Soks.parse(soks[0..-2],:close)
+      @open = soks[-1].open
     end
 
     def n=(m)
@@ -31,12 +31,6 @@ module Kabu
     end
 
     def decide(env)
-      code = env[:code]
-      open = env[:open]
-      date = env[:date]
-      position = env[:position]
-      closes = env[:closes]
-
       @kama, @lama = calc_ave(closes)
 
       if position
@@ -75,15 +69,9 @@ module Kabu
 
   class KamaLamaN < KamaLama
 
-    attr_accessor :length, :n
+    attr_accessor :n
 
     def decide(env)
-      code = env[:code]
-      open = env[:open]
-      date = env[:date]
-      position = env[:position]
-      closes = env[:closes]
-
       s_ave, l_ave = calc_ave(closes)
 
       if position

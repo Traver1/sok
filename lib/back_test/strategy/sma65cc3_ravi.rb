@@ -1,25 +1,19 @@
 module Kabu
-  class Sma65Cc3Ravi
+  class Sma65Cc3Ravi < Strategy
 
-    attr_accessor :length
+    attr_accessor :closes, :open
 
     def initialize(line = 1)
       @line = line
       @length = 69
     end
 
-    def set_env(soks, env)
-      env[:closes] = Soks.parse(soks[0..-2],:close)
-      env[:open] = soks[-1].open
+    def set_env
+      @closes = Soks.parse(soks[0..-2],:close)
+      @open = soks[-1].open
     end
 
     def decide(env)
-      code = env[:code]
-      date = env[:date]
-      closes = env[:closes]
-      open = env[:open]
-      position = env[:position]
-
       ravi = closes.ravi(7,65)
       return Action::None.new(code,open) if ravi[-1] < @line
 

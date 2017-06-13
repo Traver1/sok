@@ -1,54 +1,90 @@
-class Sma65Cc3
+module Kabu
 
-  attr_accessor :length
+  class Sma65Cc3 < Strategy
 
-  def initialize
-    @length = 68
-  end
+    attr_accessor :closes, :open
 
-  def set_env(soks, env)
-    env[:closes] = Soks.parse(soks[0..-2],:close)
-    env[:open] = soks[-1].open
-  end
-
-  def decide(env)
-    code = env[:code]
-    date = env[:date]
-    closes = env[:closes]
-    open = env[:open]
-    position = env[:position]
-
-    aves = closes[-67..-1].ave(65)
-    is_buy = 3.times.inject(true) do |ret, i|
-      ret = (ret and (closes[-1-i] > aves[-i-1]))
+    def initialize
+      @length = 68
     end
 
-    is_sell = 3.times.inject(true) do |ret, i|
-      ret = (ret and (closes[-1-i] < aves[-i-1]))
+    def set_env
+      @closes = Soks.parse(@soks[0..-2],:close)
+      @open = @soks[-1].open
     end
 
-    if not position.nil? and position.buy?
-      if is_sell
-        Action::Sell.new(code,date,open,2)
-      else
-        Action::None.new(code,open)
+    def decide(env)
+      aves = @closes[-67..-1].ave(65)
+      is_buy = 3.times.inject(true) do |ret, i|
+        ret = (ret and (closes[-1-i] > aves[-i-1]))
       end
-    elsif not position.nil? and position.sell?
-      if is_buy
-        Action::Buy.new(code,date,open,2)
-      else
-        Action::None.new(code,open)
+
+      is_sell = 3.times.inject(true) do |ret, i|
+        ret = (ret and (closes[-1-i] < aves[-i-1]))
       end
-    else
-      if is_buy
-        Action::Buy.new(code,date,open,1)
-      elsif is_sell
+
+      if not position.nil? and position.buy?
+        if is_sell
+          Action::Sell.new(code,date,open,2)
+        else
+          Action::None.new(code,open)
+        end
+      elsif not position.nil? and position.sell?
+        if is_buy
+          Action::Buy.new(code,date,open,2)
+        else
+          Action::None.new(code,open)
+        end
+      else
+        if is_buy
+          Action::Buy.new(code,date,open,1)
+        elsif is_sell
+          Action::Sell.new(code,date,open,1)
+        else
+          Action::None.new(code,open)
+        end
+      end
+    end
+  end
+
+  class Sma65Cc3N < Sma65Cc3
+
+    attr_accessor :closes, :open
+
+    def initialize
+      @length = 68
+    end
+
+    def set_env
+      @closes = Soks.parse(@soks[0..-2],:close)
+      @open = @soks[-1].open
+    end
+
+    def decide(env)
+      aves = @closes[-67..-1].ave(65)
+      is_buy = 3.times.inject(true) do |ret, i|
+        ret = (ret and (closes[-1-i] > aves[-i-1]))
+      end
+
+      is_sell = 3.times.inject(true) do |ret, i|
+        ret = (ret and (closes[-1-i] < aves[-i-1]))
+      end
+
+      if not position.nil? and position.buy? and position.term >= @n
         Action::Sell.new(code,date,open,1)
+      elsif not position.nil? and position.sell?  and position.term >= @n
+        Action::Buy.new(code,date,open,2)
+      elsif not position
+        if is_buy
+          Action::Buy.new(code,date,open,1)
+        elsif is_sell
+          Action::Sell.new(code,date,open,1)
+        else
+          Action::None.new(code,open)
+        end
       else
         Action::None.new(code,open)
       end
     end
   end
 end
-
-
