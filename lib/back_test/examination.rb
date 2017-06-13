@@ -17,7 +17,6 @@ module Kabu
           @trader.percent = true
           strategy.setup if strategy.respond_to? :setup
           strategy.n = n
-          position = nil
           soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
           soks.each_cons(strategy.length) do |sok|
             set_env(sok.last.date, sok, strategy)
@@ -66,7 +65,6 @@ module Kabu
         @trader.percent = true
         strategy.code = company.code
         strategy.setup if strategy.respond_to? :setup
-        position =nil
         soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
         soks.each_cons(strategy.length) do |sok|
           set_env(sok.last.date, sok, strategy)
@@ -110,7 +108,6 @@ module Kabu
         @trader.positions = []
         strategy.code = company.code
         strategy.setup if strategy.respond_to? :setup
-        position =nil
         soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
         soks.each_cons(strategy.length) do |sok|
           set_env(sok.last.date, sok, strategy)
@@ -160,7 +157,6 @@ module Kabu
           stop_strategy.code = company.code
           stop_strategy.setup if stop_strategy.respond_to? :setup
           stop_strategy.loss_line = loss_cut_line
-          position =nil
           soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
           soks.each_cons(stop_strategy.length) do |sok|
             set_env(sok.last.date, sok, stop_strategy)
@@ -188,7 +184,6 @@ module Kabu
         @trader.percent = true
         base_strategy.code = company.code
         base_strategy.setup if base_strategy.respond_to? :setup
-        position =nil
         soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
         soks.each_cons(base_strategy.length) do |sok|
           set_env(sok.last.date, sok, base_strategy)
@@ -211,7 +206,6 @@ module Kabu
     end
 
     def plot_summary(strategy,code, dir)
-      companies = Company.where('code like ?', code).order(:code).select(:code)
       if not @trader 
         @trader = Trader.new
         @trader.bunkrupt = true
@@ -219,7 +213,6 @@ module Kabu
       end
       strategy.code = code
       strategy.setup if strategy.respond_to? :setup
-      position =nil
       soks = Sok.joins(:company).where('companies.code=?',code).order('date')
       soks.each_cons(strategy.length) do |sok|
         set_env sok[-1].date, sok, strategy
@@ -236,7 +229,6 @@ module Kabu
       wins = []
       averages = []
       pfs = []
-      codes = []
       trades = []
 
       com = Company.find_by_code code
@@ -267,7 +259,6 @@ module Kabu
         @trader = Trader.new
         @trader.percent = true
         strategy.setup if strategy.respond_to? :setup
-        position =nil
         shuffled.each_cons(strategy.length) do |sok|
           set_env(sok.last.date, sok, strategy)
           action = strategy.decide(nil)
@@ -321,10 +312,11 @@ module Kabu
         @trader.bunkrupt = true
         @trader.percent = true
       end
+      @trader.off_increse_term = true
       strategies.each {|s| s.setup if s.respond_to? :setup}
       strategies.each {|s| s.company = companies.select{|c|c.code == s.code}.first}
       max = strategies.inject(0) {|m,s|[m,s.length].max}
-      dates = Sok.joins(:company).where('companies.code in (?)',codes).order(:date).select(:date).uniq
+      dates = Sok.joins(:company).where('companies.code in (?)',codes).order(:date).group(:date).select(:date)
       soks_pool = codes.inject({}) {|h,c| h.update c=>[]}
       dates.each do |sok|
         date = sok.date
@@ -332,11 +324,13 @@ module Kabu
         strategies.sort!
         strategies.each do |strategy|
           next if soks_pool[strategy.code].length < max
+          next if not soks_pool[strategy.code].last.date == date
           set_env(date, soks_pool, strategies)
           action = strategy.decide(nil)
           @trader.receive [action].flatten
         end
-        puts [date, @trader.capital(false)].join(' ')
+        @trader.increese_term
+        puts [date, @trader.capital(true).round(1), @trader.positions.length].join(' ')
       end
       @trader.summary
       @trader.save(dir)
