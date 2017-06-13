@@ -54,7 +54,12 @@ module Kabu
 
     def calc_ave(closes)
       @pkama, @plama = @kama, @lama
-      er = (closes[-1] - closes[-@m]).abs / closes[-@m-1..-1].diff.abs.sum
+      sum = closes[-@m-1..-1].diff.abs.sum
+      if sum > 0
+        er = (closes[-1] - closes[-@m]).abs / sum
+      else
+        er = 0
+      end
       alpha = (er*(2.0/(@s_len+1) - 2.0/(@l_len+1)) + 2.0/(@l_len+1)) ** 2
       if not @kama or not @lama
         @kama = closes[-1]
