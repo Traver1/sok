@@ -18,6 +18,37 @@ module Kabu
       @length = [@m,@length].max
     end
 
+    def <=>(other)
+      if soks and other.soks
+        if (soks.last.close * soks.last.volume) > 1000000000 and 
+            (other.soks.last.close * other.soks.last.volume)  > 1000000000
+          if soks.length > 12 and other.soks.length  > 12
+            soks.dev(12)[-1] <=> other.soks.dev(12)[-1]
+          elsif soks.length > 12
+            1
+          elsif other.soks.length > 12
+            -1
+          else
+            0
+          end
+        elsif (soks.last.close * soks.last.volume) > 1000000000
+          1
+        elsif (other.soks.last.close * other.soks.last.volume)  > 1000000000
+          -1
+        else 
+          0
+        end
+      else
+        if soks.nil? and other.soks.nil?
+          0
+        elsif soks.nil?
+          -1
+        else
+          1
+        end
+      end
+    end
+
     def decide(env)
       @kama, @lama = calc_ave(closes)
       @kamas << @kama
@@ -31,6 +62,13 @@ module Kabu
 
       @kamas.shift
 
+      if capital
+        volume = capital / company.unit / open
+        volume = volume.to_i * company.unit
+      else
+        volume = 1
+      end
+
       if position
         gain = position.gain(closes[-1], position.volume)
 
@@ -38,17 +76,17 @@ module Kabu
           high = soks[-@t_stop_l..-1].high(@t_stop_l)[-1]
           low = soks[-@t_stop_l..-1].low(@t_stop_l)[-1]
           if position.sell? and high == soks[-1].high
-            return Action::Buy.new(code, date, open, 1)
+            return Action::Buy.new(code, date, open, position.volume)
           elsif  position.buy? and low == soks[-1].low
-            return Action::Sell.new(code, date, open, 1)
+            return Action::Sell.new(code, date, open, position.volume)
           else
             return Action::None.new(code,open)
           end
         else
           if @is_buy and not is_buy_p and position.sell?
-            return Action::Buy.new(code, date, open, 2)
+            return Action::Buy.new(code, date, open, position.volume + volume)
           elsif @is_sell and not is_sell_p and position.buy?
-            return Action::Sell.new(code, date, open, 2)
+            return Action::Sell.new(code, date, open, position.volume + volume)
           else
             return Action::None.new(code,open)
           end
@@ -56,9 +94,9 @@ module Kabu
       end
 
       if @is_buy and not is_buy_p
-        return Action::Buy.new(code, date, open, 1)
+        return Action::Buy.new(code, date, open, volume)
       elsif @is_sell and not is_sell_p
-        return Action::Sell.new(code, date, open, 1)
+        return Action::Sell.new(code, date, open, volume)
       else
         return Action::None.new(code,open)
       end
