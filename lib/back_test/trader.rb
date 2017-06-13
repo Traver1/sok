@@ -1,7 +1,7 @@
 module Kabu
   class Trader
 
-    attr_accessor :records, :positions, :percent, :bunkrupt, :capital, :cost
+    attr_accessor :records, :positions, :percent, :bunkrupt, :capital, :cost, :off_increse_term
 
     def initialize
       @positions = []
@@ -9,14 +9,15 @@ module Kabu
       @cost = 0
       @percent = false
       @capital = nil
+      @off_increse_term = false
     end
 
     def receive(actions)
       contract_to_current_position actions
-      increese_term
+      increese_term if not @off_increse_term
       contract_remain actions
       update_mfe actions
-      raise 'bunkrupt! check strategy!!' if @capital and @capital <= 0
+      raise 'bunkrupt! check strategy!!' if @capital and @capital < 0
     end
 
     def increese_term
@@ -85,6 +86,7 @@ module Kabu
           end
           if @capital
             @capital -= action.price * action.volume
+            binding. pry if @capital < 0
           end
           action.volume = 0
         end
@@ -94,7 +96,7 @@ module Kabu
     def each_positions(actions)
       actions.group_by {|a| a.code}.each do |code, action|
         action.each do |a|
-          sorted = @positions.find_all {|p| p.code == code }.sort {|a,b| a.date <=> b.date }
+          sorted = @positions.find_all {|p| p.code == code }.sort {|x,y| x.date <=> y.date }
           sorted.each do |position|
             yield code, a, position
           end
