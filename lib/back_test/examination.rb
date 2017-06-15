@@ -213,7 +213,11 @@ module Kabu
       end
       strategy.code = code
       strategy.setup if strategy.respond_to? :setup
-      soks = Sok.joins(:company).where('companies.code=?',code).order('date')
+      if Sok.joins(:company,:split).where('companies.code=?',code).length > 0
+        soks = Company.where('code=?',code).first.soks.order('date')
+      else
+        soks = Sok.joins(:company).where('companies.code=?',code).order('date')
+      end
       soks.each_cons(strategy.length) do |sok|
         set_env sok[-1].date, sok, strategy
         action = strategy.decide(nil)
