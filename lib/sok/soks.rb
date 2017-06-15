@@ -143,6 +143,24 @@ module Kabu
       results
     end
 
+    def rsi(length)
+      results = Soks.new
+      self.each_cons(length) do |values|
+        plus = 0
+        minus = 0
+        values.each_cons(2) do |v|
+          diff = v.last - v.first
+          if diff > 0
+            plus += diff
+          else
+            minus += diff.abs
+          end
+        end
+        results << plus / (minus + plus) * 100
+      end
+      results
+    end
+
     def diff(length=2)
       results = Soks.new
       self.each_cons(length) do |values|
