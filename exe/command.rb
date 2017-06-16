@@ -36,9 +36,7 @@ class Command
   end
 
   def schedule
-    binding.pry
-    #codes  = Kabu::KDb.read_codes
-    codes = %w(2540-T 9984-T)
+    codes  = Kabu::KDb.read_codes
     reader =  @yahoo
 
     codes.each do |code_market|
