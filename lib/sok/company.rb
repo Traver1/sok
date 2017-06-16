@@ -30,10 +30,16 @@ module Kabu
       true
     end
 
-    def adjusteds
+    def adjusteds(from = nil, to = nil)
       return @adjusteds if @adjusteds
       rate = 1
-      @adjusteds = soks.order('date desc').each do |sok|
+      query = []
+      query << 'date <= ?' if to
+      query << 'date >= ?' if from
+      args = []
+      args << to if to
+      args << from if from
+      @adjusteds = soks.where(query.join(' and '), *args).order('date desc').each do |sok|
         sok.close = sok.close * rate
         sok.high = sok.high * rate
         sok.low = sok.low * rate
