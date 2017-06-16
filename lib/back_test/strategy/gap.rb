@@ -24,6 +24,7 @@ module Kabu
     end
 
     def decide(env)
+      @volume = calc_volume(open, 0.3)
       if position
         ave = closes[-3..-1].ave(3)[-1]
         if ave < closes[-1]

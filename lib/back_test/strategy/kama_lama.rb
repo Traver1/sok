@@ -5,6 +5,7 @@ module Kabu
     attr_accessor :s_len, :l_len, :closes, :open
 
     def initialize
+      super
       @length = 37
       @l_len = 6
       @s_len = 3

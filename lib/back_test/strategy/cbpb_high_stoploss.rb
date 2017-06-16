@@ -1,27 +1,19 @@
 module Kabu
-  class CbPbHighStopLoss
+  class CbPbHighStopLoss < Strategy
 
     attr_accessor :loss_line, :length
 
     def initialize
       @loss_cutted = false
       @length = 27
+      @loss_line = -10
     end
 
     def setup
       @last_position = nil
     end
 
-    def set_env(soks, env)
-      env[:soks] = soks
-    end
-
     def decide(env)
-      code = env[:code]
-      date = env[:date]
-      soks = env[:soks]
-      position = env[:position]
-
       highs = soks[-27..-2].high(20)
       is_high = false
       highs.zip(soks[-8..-2]).each do |high,sok|
@@ -41,7 +33,7 @@ module Kabu
         end
       end
 
-      is_loss_cut = position.gain(soks[-2].close,1) < @loss_line
+      is_loss_cut = gain_p(soks[-2].close) < @loss_line
 
       if is_loss_cut
         @last_position = position
