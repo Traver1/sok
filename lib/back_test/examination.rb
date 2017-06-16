@@ -329,11 +329,10 @@ module Kabu
       dates.each do |sok|
         date = sok.date
         select_values(codes, date, soks_pool, max)
-        strategies.sort!
-        strategies.each do |strategy|
+        set_env(date, soks_pool, strategies)
+        strategies.select{|s| s.pass?}.sort.each do |strategy|
           next if soks_pool[strategy.code].length < max
           next if not soks_pool[strategy.code].last.date == date
-          set_env(date, soks_pool, strategies)
           action = strategy.decide(nil)
           @trader.receive [action].flatten
         end
