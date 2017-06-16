@@ -1,7 +1,7 @@
 module Kabu
   class Examination
 
-    attr_accessor :trader, :targets
+    attr_accessor :trader, :targets, :from, :to
 
     def initialize
       @targets = (201..233).map {|s| "I#{s}"}
@@ -13,6 +13,7 @@ module Kabu
       records = Soks.new(6,[])
       companies = Company.where('code in (?)', @targets).order(:code).select(:code)
       companies.each do |company|
+        next if codes.include? company.code
         wins << []
         codes << company.code
         strategy.code = company.code
@@ -21,7 +22,7 @@ module Kabu
           @trader.percent = true
           strategy.setup if strategy.respond_to? :setup
           strategy.n = n
-          soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
+          soks = select_soks(company.code)
           soks.each_cons(strategy.length) do |sok|
             set_env(sok.last.date, sok, strategy)
             action = strategy.decide(nil)
@@ -38,12 +39,28 @@ module Kabu
       puts "#{["    ", records.map{|a|Record.win_rate(a).round(2).to_s.ljust(4,'0')}].flatten.join("|")}|"
     end
 
+    def select_soks(code)
+      args = []
+      args << code
+      args << @to if @to
+      args << @from if @from
+      if Sok.joins(:company,:split).where('companies.code=?',code).length > 0
+        com = Company.where('code=?',code)
+        com.first.adjusteds(from, to)
+      else
+        query = "companies.code=?"
+        query += 'and date <= ?' if @to
+        query += 'and date >= ?' if @from
+        Sok.joins(:company).where(query,*args).order('date')
+      end
+    end
+
     def plot_recorded_chart(strategy, code, chart, dir)
       @trader = Trader.new
       @trader.percent = true
       strategy.code = code
       strategy.setup if strategy.respond_to? :setup
-      soks = Sok.joins(:company).where('companies.code=?',code).order('date')
+      soks = select_soks(company.code)
       soks.each_cons(strategy.length) do |sok|
         set_env(sok.last.date, sok, strategy)
         action = strategy.decide(nil)
@@ -64,12 +81,13 @@ module Kabu
       companies = Company.where('code in (?)', @targets).order(:code).select(:code)
 
       companies.each do |company|
+        next if codes.include? company.code
         codes << company.code
         @trader = Trader.new
         @trader.percent = true
         strategy.code = company.code
         strategy.setup if strategy.respond_to? :setup
-        soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
+        soks = select_soks(company.code)
         soks.each_cons(strategy.length) do |sok|
           set_env(sok.last.date, sok, strategy)
           action = strategy.decide(nil)
@@ -78,12 +96,13 @@ module Kabu
 
         @trader.summary
         r = @trader.records
-        net_incomes << Record.net_income(r)
-        dds << Record.max_drow_down(r)
-        wins << Record.win_rate(r) * 100
-        averages << Record.average(r)
-        pfs << Record.profit_factor(r)
-        trades << Record.trades(r)
+      
+        net_incomes << Record.net_income(r).to_f
+        dds << Record.max_drow_down(r).to_f
+        wins << (Record.win_rate(r) * 100).to_f
+        averages << Record.average(r).to_f
+        pfs << Record.profit_factor(r).to_f
+        trades << Record.trades(r).to_f
       end
 
       codes.zip(net_incomes,trades,wins,pfs,averages,dds).each do |array|
@@ -91,13 +110,13 @@ module Kabu
       end
 
       indecis = [net_incomes, trades, wins, pfs,averages, dds].map do |vs|
-        (vs.inject(0){|r,v| r+= v}/vs.length).round(1)
+        (vs.inject(0){|r,v| r+= v.finite? ? v : 0}/vs.select{|s|s.finite?}.length).round(1)
       end 
       puts "|#{["    ", indecis].flatten.join("|")}|"
 
       indecis = [net_incomes, trades, wins, pfs,averages, dds].map do |vs|
-        ave = vs.inject(0){|r,v| r+= v}/vs.length
-        (Math.sqrt(vs.inject(0){|r,v|r+=(v-ave)**2}/vs.length)).round(2)
+        ave = vs.inject(0){|r,v| r+= v.finite? ? v : 0}/vs.select{|s|s.finite?}.length
+        (Math.sqrt(vs.inject(0){|r,v|r+= v.finite? ? (v-ave)**2 : 0}/vs.select{|s|s.finite?}.length)).round(2)
       end 
       puts "|#{["    ", indecis].flatten.join("|")}|"
     end
@@ -108,11 +127,12 @@ module Kabu
       @trader.percent = true
       companies = Company.where('code in (?)', @targets).order(:code).select(:code)
       companies.each do |company|
+        next if codes.include? company.code
         codes << company.code
         @trader.positions = []
         strategy.code = company.code
         strategy.setup if strategy.respond_to? :setup
-        soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
+        soks = select_soks(company.code)
         soks.each_cons(strategy.length) do |sok|
           set_env(sok.last.date, sok, strategy)
           action = strategy.decide(nil)
@@ -161,7 +181,7 @@ module Kabu
           stop_strategy.code = company.code
           stop_strategy.setup if stop_strategy.respond_to? :setup
           stop_strategy.loss_line = loss_cut_line
-          soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
+          soks = select_soks(company.code)
           soks.each_cons(stop_strategy.length) do |sok|
             set_env(sok.last.date, sok, stop_strategy)
             action = stop_strategy.decide(nil)
@@ -188,7 +208,7 @@ module Kabu
         @trader.percent = true
         base_strategy.code = company.code
         base_strategy.setup if base_strategy.respond_to? :setup
-        soks = Sok.joins(:company).where('companies.code=?',company.code).order('date')
+        soks = select_soks(company.code)
         soks.each_cons(base_strategy.length) do |sok|
           set_env(sok.last.date, sok, base_strategy)
           action = base_strategy.decide(nil)
@@ -217,11 +237,7 @@ module Kabu
       end
       strategy.code = code
       strategy.setup if strategy.respond_to? :setup
-      if Sok.joins(:company,:split).where('companies.code=?',code).length > 0
-        soks = Company.where('code=?',code).first.soks.order('date')
-      else
-        soks = Sok.joins(:company).where('companies.code=?',code).order('date')
-      end
+      soks = select_soks(company.code)
       soks.each_cons(strategy.length) do |sok|
         set_env sok[-1].date, sok, strategy
         action = strategy.decide(nil)
