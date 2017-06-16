@@ -1,13 +1,17 @@
 module Kabu
   class Examination
 
-    attr_accessor :trader
+    attr_accessor :trader, :targets
+
+    def initialize
+      @targets = (201..233).map {|s| "I#{s}"}
+    end
 
     def n(strategy)
       wins = []
       codes = []
       records = Soks.new(6,[])
-      companies = Company.where('code like ?', 'I2%').order(:code).select(:code)
+      companies = Company.where('code in (?)', @targets).order(:code).select(:code)
       companies.each do |company|
         wins << []
         codes << company.code
@@ -57,7 +61,7 @@ module Kabu
       codes = []
       trades = []
 
-      companies = Company.where('code like ?', 'I2%').order(:code).select(:code)
+      companies = Company.where('code in (?)', @targets).order(:code).select(:code)
 
       companies.each do |company|
         codes << company.code
@@ -102,7 +106,7 @@ module Kabu
       codes = []
       @trader = Trader.new
       @trader.percent = true
-      companies = Company.where('code like ?', 'I2%').order(:code).select(:code)
+      companies = Company.where('code in (?)', @targets).order(:code).select(:code)
       companies.each do |company|
         codes << company.code
         @trader.positions = []
@@ -141,7 +145,7 @@ module Kabu
       averages = []
       records = []
 
-      companies = Company.where('code like ?', 'I2%').order(:code).select(:code)
+      companies = Company.where('code in (?)', @targets).order(:code).select(:code)
 
       range.each do |loss_cut_line|
 
