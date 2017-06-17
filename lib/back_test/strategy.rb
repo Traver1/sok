@@ -55,6 +55,18 @@ module Kabu
       end
     end
 
+    def none
+      Action::None.new(@code,@soks[-1].close)
+    end
+
+    def sell(price,volume)
+      Action::Sell.new(@code,@date,price,volume)
+    end
+
+    def buy(price,volume)
+      Action::Buy.new(@code,@date,price,volume)
+    end
+
     def date
       @date
     end
