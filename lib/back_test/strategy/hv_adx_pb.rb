@@ -25,7 +25,7 @@ module Kabu
       super
       @closes = Soks.parse(soks[-201..-2],:close)
       @open = soks[-1].open
-      if soks[-1].low > soks[-2].close * (1-@z)
+      if soks[-1].low < soks[-2].close * (1-@z)
         @t_price = (soks[-2].close * (1-@z)).to_i
       else
         @t_price = nil
