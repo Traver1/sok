@@ -23,12 +23,13 @@ module Kabu
 
     def set_env
       super
-      @closes = Soks.parse(soks[-201..-2],:close)
-      @open = soks[-1].open
-      if soks[-1].low > soks[-2].close * (1-@z)
-        @t_price = (soks[-2].close * (1-@z)).to_i
-      else
-        @t_price = nil
+      @t_price = nil
+      if soks[-201..-1]
+        @closes = Soks.parse(soks[-201..-2],:close)
+        @open = soks[-1].open
+        if soks[-1].low > soks[-2].close * (1-@z)
+          @t_price = (soks[-2].close * (1-@z)).to_i
+        end
       end
     end
 
@@ -39,7 +40,7 @@ module Kabu
       if position
         ave = Soks.parse(soks[-3..-1], :close).ave(3)[-1]
         return none if ave > soks[-1].close
-        return sell(@t_price,@position.volume)
+        return sell(soks[-1].close,@position.volume)
       else
         ave = closes.ave(200)[-1]
         return none if closes[-1] < ave
