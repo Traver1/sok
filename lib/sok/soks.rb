@@ -278,6 +278,38 @@ module Kabu
       results
     end
 
+    def dx(length)
+      result = []
+      self.each_cons(length+1) do |values|
+        pdm, mdm, tr = [], [], []
+        values.each_cons(2) do |vs|
+          pdm << vs[-1].high - vs[-2].high
+          mdm << vs[-2].low - vs[-1].low
+          if (pdm[-1] < 0 and mdm[-1] < 0) or pdm == mdm
+            pdm[-1], mdm[-1] = 0, 0
+          elsif pdm[-1] > mdm[-1]
+            mdm[-1] = 0
+          elsif pdm[-1] < mdm[-1]
+            pdm[-1] = 0
+          end
+          tr << [vs[-1].high - vs[-1].low, vs[-1].high - vs[-2].close, vs[-2].close - vs[-1].low].max
+        end
+        ts, ps, ms = tr.sum, pdm.sum, mdm.sum
+        pdi = ps / ts * 100
+        mdi = ms / ts * 100
+        result << (pdi - mdi).abs / (pdi + mdi) * 100
+      end
+      Soks[*result]
+    end
+
+    def adx(n,m)
+      result = []
+      self.dx(n).each_cons(m) do |dxs|
+        result << dxs.sum / length
+      end
+      Soks[*result]
+    end
+
     def cumu
       sum = 0
       self.map do |value|
