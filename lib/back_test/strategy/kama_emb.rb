@@ -41,7 +41,7 @@ module Kabu
     end
 
     def decide(env)
-      return Action::None.new(code,open) if @kamas.length < @kamas_l
+      return none if @kamas.length < @kamas_l
       dev = closes[-@kamas_l..-1].vol(@kamas_l,@kamas)[-1]
       stc = (@kamas.last - @kamas.min ) / (@kamas.max - @kamas.min)  * 100
       is_buy_p = @is_buy
@@ -59,41 +59,50 @@ module Kabu
           low = soks[-@t_stop_l..-1].low(@t_stop_l)[-1]
           if position.sell? and high == soks[-1].high
             @profit += gain / position.term
-            return Action::Buy.new(code, date, open, position.volume)
+            return buy(open, position.volume)
           elsif  position.buy? and low == soks[-1].low
             @profit += gain/ position.term
-            return Action::Sell.new(code, date, open, position.volume)
+            return sell(open, position.volume)
           else
-            return Action::None.new(code,open)
+            return none 
           end
         elsif gain < -20 or position.term > 40
           if position.sell?
             @profit += gain/ position.term
-            return Action::Buy.new(code, date, open, position.volume)
+            return buy(open, position.volume)
           elsif position.buy?
             @profit += gain/ position.term
-            return Action::Sell.new(code, date, open, position.volume)
+            return sell(open, position.volume)
           end
         else
           if @is_buy and not is_buy_p and position.sell?
             @profit += gain/ position.term
-            return Action::Buy.new(code, date, open, position.volume + @volume)
+            return buy(open, position.volume + @volume)
           elsif @is_sell and not is_sell_p and position.buy?
             @profit += gain/ position.term
-            return Action::Sell.new(code, date, open, position.volume + @volume)
+            return sell(open, position.volume + @volume)
           else
-            return Action::None.new(code,open)
+            return none
           end
         end
       end
 
       if @is_buy and not is_buy_p
-        return Action::Buy.new(code, date, open, @volume)
+        return buy(open, @volume)
       elsif @is_sell and not is_sell_p
-        return Action::Sell.new(code, date, open, @volume)
+        return sell(open, @volume)
       else
-        return Action::None.new(code,open)
+        return none
       end
+    end
+  end
+
+  class KamaEmbS < KamaEmb
+    
+    def set_env
+      super
+      closes = Soks.parse(soks, :close)
+      open = soks[-1].open
     end
   end
 
