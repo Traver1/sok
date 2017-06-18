@@ -55,6 +55,7 @@ module Kabu
     def has_next?
       begin
         ul = @doc.css("ul.ymuiPagingBottom")[0]
+        return false if not ul
         a  = ul.css("a").last
         if not a or a.content =~ /\d/
           false
