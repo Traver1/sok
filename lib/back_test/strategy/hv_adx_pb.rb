@@ -27,7 +27,7 @@ module Kabu
       if soks[-201..-1]
         @closes = Soks.parse(soks[-201..-2],:close)
         @open = soks[-1].open
-        if soks[-1].low > soks[-2].close * (1-@z)
+        if soks[-1].low < soks[-2].close * (1-@z)
           @t_price = (soks[-2].close * (1-@z)).to_i
         end
       end
@@ -35,7 +35,7 @@ module Kabu
 
     def decide(env)
       if position.nil?
-        return Action::None.new(@code,@open) if @t_price.nil?
+        return none if @t_price.nil?
       end
       if position
         ave = Soks.parse(soks[-3..-1], :close).ave(3)[-1]
