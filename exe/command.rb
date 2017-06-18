@@ -42,7 +42,7 @@ class Command
     codes.each do |code_market|
       code, market = code_market.split('-')
       company = Kabu::Company.find_by_code code
-      if company
+      if company and company.soks.length > 0
         from = company.soks.order(:date).last.date + 1
         to = Date.today
       else
