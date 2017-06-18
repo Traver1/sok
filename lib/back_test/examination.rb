@@ -345,10 +345,13 @@ module Kabu
       dates.each do |sok|
         date = sok.date
         select_values(codes, date, soks_pool, max)
-        set_env(date, soks_pool, strategies)
+        strategies.each do |strategy|
+          set_env(date, soks_pool, strategy)
+        end
         strategies.select{|s| s.pass?}.sort.each do |strategy|
           next if soks_pool[strategy.code].length < max
           next if not soks_pool[strategy.code].last.date == date
+          strategy.capital = @trader.capital(false)
           action = strategy.decide(nil)
           @trader.receive [action].flatten
         end
@@ -359,16 +362,14 @@ module Kabu
       @trader.save(dir)
     end
 
-    def set_env(date, soks_pool, strategies)
-      strategies.each do |strategy|
-        next if soks_pool[strategy.code].empty? or not soks_pool[strategy.code].last.date == date
-        strategy.date = date
-        positions = @trader.positions.select {|p| p.code == strategy.code}
-        strategy.position = positions.any? ? positions[0] : nil
-        strategy.capital = @trader.capital(false)
-        strategy.soks = Soks[*soks_pool[strategy.code]]
-        strategy.set_env
-      end
+    def set_env(date, soks_pool, strategy)
+      return if soks_pool[strategy.code].empty? or not soks_pool[strategy.code].last.date == date
+      strategy.date = date
+      positions = @trader.positions.select {|p| p.code == strategy.code}
+      strategy.position = positions.any? ? positions[0] : nil
+      strategy.capital = @trader.capital(false)
+      strategy.soks = Soks[*soks_pool[strategy.code]]
+      strategy.set_env
     end
 
     def select_values(codes, date, soks_pool, max)
