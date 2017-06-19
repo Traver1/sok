@@ -10,19 +10,17 @@ module Kabu
     def set_env
     end
 
+    def dispose
+      @soks = nil
+      @volumes = nil
+    end
+
     def <=>(o)
-      if @soks and o.soks and @soks.length >= @length and o.soks.length >= @length
-        o.profit <=> @profit
-      elsif @soks and @soks.length >= @length
-        -1
-      elsif o.soks and o.soks.length >= @length
-        1
-      else
-        0
-      end
+      o.profit <=> @profit
     end
 
     def pass?
+      return false if not (@soks and @soks.length >= @length)
       true
     end
 
