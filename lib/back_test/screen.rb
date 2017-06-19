@@ -2,7 +2,11 @@ module Kabu
 
   class Screen
 
-    attr_accessor :strategies, :trader, :actions
+    attr_accessor :trader, :actions
+
+    def initialize
+      @actions = []
+    end
 
     def self.load(path)
       File.open(path, 'rb') do |file|
@@ -11,27 +15,34 @@ module Kabu
     end
 
     def self.save(screen, path)
-      File.open(path, 'bw') do |file|
+      File.open(path, 'wb') do |file|
         file << Marshal.dump(screen)
       end
     end
 
-    def screen(date=Date.today)
-      @actions = []
-      @strategies.each do |strategy|
-        soks = Sok.joins(:company).where('code=? and date <=?',strategy.code,date).order(:date)
-        next if @actions.select{|a|a.code == soks.last.company.code}.nil?
-        strategy.soks = Soks[*soks.last(strategy.length)]
-        strategy.date = soks.last.date
-        strategy.position = @trader.positions.any? ? @trader.positions[0] : nil
-        strategy.capital = @trader.capital(false)
-        strategy.company = soks.last.company
-        strategy.set_env
-        @actions << strategy.decide(nil)
-        @trader.receive [@actions.last]
+    def screen(from, to, strategy)
+      soks = Company.find_by_code(strategy.code).adjusteds(from, to)
+      if soks.last and soks.length >= strategy.length
+        if soks.last.date == to
+          strategy.soks = Soks[*soks]
+          strategy.date = soks.last.date
+          position = @trader.positions.select{|s|s.code == strategy.code}
+          strategy.position = position ? position[0] : nil
+          strategy.capital = @trader.capital(false)
+          strategy.company = soks.last.company
+          strategy.set_env
+          if strategy.pass?
+            action = strategy.decide(nil)
+            volume = action.volume
+            @trader.receive [action]
+            if not action.none?
+              puts [strategy.code, @trader.capital(false), action.class, action.price, volume].join(' ') 
+              @actions << action 
+            end
+          end
+        end
       end
-      @actions = @actions.select {|a|not a.none?}
-      puts @actions; @actions
+      strategy.dispose
     end
   end
 end
