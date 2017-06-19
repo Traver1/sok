@@ -340,7 +340,13 @@ module Kabu
       strategies.each {|s| s.setup if s.respond_to? :setup}
       strategies.each {|s| s.company = companies.select{|c|c.code == s.code}.first}
       max = strategies.inject(0) {|m,s|[m,s.length].max}
-      dates = Sok.joins(:company).where('companies.code in (?)',codes).order(:date).group(:date).select(:date)
+      query = 'companies.code in (?)'
+      query += ' and date >= ?' if from
+      query += ' and date <= ?' if to
+      args = [codes]
+      args << from if from
+      args << to if to
+      dates = Sok.joins(:company).where(query,*args).order(:date).group(:date).select(:date)
       soks_pool = codes.inject({}) {|h,c| h.update c=>[]}
       dates.each do |sok|
         date = sok.date
@@ -373,8 +379,9 @@ module Kabu
     end
 
     def select_values(codes, date, soks_pool, max)
-      Sok.joins(:company).where('companies.code in (?) and date = ?', codes, date).each do |sok|
+      Sok.find_by_sql(["select * from soks, (select * from companies where code in (?)) a where soks.company_id = a.id and date = ?", codes, date]).each do |sok|
         pool = soks_pool[sok.company.code]
+        next if pool.last and pool.last.date == sok.date
         sok.adjust_values! pool.last.rate if pool.any?
         pool << sok
         pool.shift if pool.length > max
