@@ -2,7 +2,7 @@ module Kabu
 
   class KamaEmb < KamaLama
 
-    attr_accessor :kmasa_l, :t_stop_l, :profit
+    attr_accessor :kmasa_l, :t_stop_l, :profit, :kamas
 
     def initialize
       super
@@ -38,6 +38,12 @@ module Kabu
       super
       @kama, @lama = calc_ave(closes)
       @kamas << @kama
+      @kamas.shift if @kamas.length > @kamas_l
+    end
+
+    def dispose
+      super
+      @closes = nil
     end
 
     def decide(env)
@@ -46,11 +52,10 @@ module Kabu
       stc = (@kamas.last - @kamas.min ) / (@kamas.max - @kamas.min)  * 100
       is_buy_p = @is_buy
       is_sell_p = @is_sell
-      @is_buy = (stc == 100 and closes[-1] < @kama+dev*@dev_r)
-      @is_sell = (stc == 0 and closes[-1] > @kama-dev*@dev_r)
+      @is_buy = (stc == 100 and closes[-1] < @kamas.last+dev*@dev_r)
+      @is_sell = (stc == 0 and closes[-1] > @kamas.last-dev*@dev_r)
       @volume = calc_volume(open, 0.3)
 
-      @kamas.shift
 
       if position
         gain = gain_p(closes[-1])
@@ -100,9 +105,20 @@ module Kabu
   class KamaEmbS < KamaEmb
     
     def set_env
-      super
-      closes = Soks.parse(soks, :close)
-      open = soks[-1].open
+      @closes = Soks.parse(soks, :close)
+      @open = soks[-1].open
+      if @kamas.empty?
+        @kamas = @closes.kama(@m, @s_len, @l_len)
+        @kamas = @kamas[-[@kamas.length,@kamas_l].min..-1]
+        @kama = @kamas ? @kamas.last : closes[-1]
+        @lama = @kamas ? @kamas.last : closes[-1]
+      else
+        @kama = @kamas.last
+        @lama = @kamas.last
+        @kama ,@lama = calc_ave(@closes)
+        @kamas << @kama
+        @kamas.shift if @kamas.length > @kamas_l
+      end
     end
   end
 
