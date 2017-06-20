@@ -1,7 +1,7 @@
 Bundler.require
 include Kabu
 
-dir = File.expand_path '../data/screen/kama_emb', File.dirname(__FILE__)
+dir = File.expand_path '../data/screen/hv_adx_pb', File.dirname(__FILE__)
 FileUtils.mkdir_p dir if not File.exists? dir
 
 screen = Screen.new
@@ -21,30 +21,25 @@ puts 'get previeous status'
 profits = codes.map do |com|
   path = dir + '/' + com.code
   if File.exists? path
-    kamas, profit = Screen.load path
+    profit = Screen.load path
   else
-    kamas, profit = [], 0
+    profit =  0
   end
-  [com.code,profit,kamas]
+  [com.code,profit]
 end
 profits.sort!{|a,b|b[1] <=> a[1]}
 
 puts 'screening'
-profits.each do |code, profit,kamas|
-  strategy = KamaEmbS.new
-  strategy.s_len = 4
-  strategy.l_len = 30
-  strategy.m = 10
+profits.each do |code, profit|
+  strategy = HvAdxPb.new
   strategy.code = code
   strategy.profit = profit
-  strategy.kamas = kamas
-  strategy.capital = strategy.trader.capital(false)
 
-  path = dir + '/' + code
-  from = File.exists?(path) ? dates[-strategy.length*2] : dates.first
+  from = dates[-strategy.length*2]
 
   screen.screen from, to, strategy
-  Screen.save [strategy.kamas, strategy.profit], path
+  path = dir + '/' + code
+  Screen.save [strategy.profit], path
 end
 
 puts 'save screen'

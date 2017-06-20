@@ -28,7 +28,6 @@ module Kabu
           strategy.date = soks.last.date
           position = @trader.positions.select{|s|s.code == strategy.code}
           strategy.position = position ? position[0] : nil
-          strategy.capital = @trader.capital(false)
           strategy.company = soks.last.company
           strategy.set_env
           if strategy.pass?
