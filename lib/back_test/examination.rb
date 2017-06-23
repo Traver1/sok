@@ -60,7 +60,7 @@ module Kabu
       @trader.percent = true
       strategy.code = code
       strategy.setup if strategy.respond_to? :setup
-      soks = select_soks(company.code)
+      soks = select_soks(code)
       soks.each_cons(strategy.length) do |sok|
         set_env(sok.last.date, sok, strategy)
         action = strategy.decide(nil)
