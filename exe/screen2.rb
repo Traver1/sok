@@ -17,29 +17,12 @@ to = dates.last
 puts 'get companies'
 codes = Sok.joins(:company).where('market=?','T').group(:code).select(:code)
 
-puts 'get previeous status'
-profits = codes.map do |com|
-  path = dir + '/' + com.code
-  if File.exists? path
-    profit = Screen.load path
-  else
-    profit =  0
-  end
-  [com.code,profit]
-end
-profits.sort!{|a,b|b[1] <=> a[1]}
-
 puts 'screening'
-profits.each do |code, profit|
-  strategy = HvAdxPb.new
-  strategy.code = code
-  strategy.profit = profit
-
+codes.each do |com|
+  strategy = KnifeS.new
+  strategy.code = com.code
   from = dates[-strategy.length*2]
-
   screen.screen from, to, strategy
-  path = dir + '/' + code
-  Screen.save [strategy.profit], path
 end
 
 puts 'save screen'
