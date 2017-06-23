@@ -24,11 +24,11 @@ module Kabu
     def set_env
       super
       @t_price = nil
-      if soks[-3..-1]
-        @closes = Soks.parse(soks[-4..-2],:close)
+      if soks[-@y-1..-1]
+        @closes = Soks.parse(soks[-@y-1..-2],:close)
         @open = soks[-1].open
-        if soks[-1].low < soks[-2].close * (1-@z) and soks[-1].volume > @q
-          @t_price = (soks[-2].close * (1-@z)).to_i
+        if soks[-1].low < soks[-2].close * (1-@z) and soks[-1].volume > @q / 3
+          @t_price = [(soks[-2].close * (1-@z)).to_i, soks[-1].high].min
         end
       end
     end
@@ -50,6 +50,18 @@ module Kabu
 
         volume = calc_volume(@t_price,0.3)
         return buy(@t_price,volume)
+      end
+    end
+  end
+
+  class KnifeS < Knife
+    def set_env
+      super
+      @t_price = nil
+      if soks[-@y-1..-1]
+        @closes = Soks.parse(soks[-@y-1..-1],:close)
+        @open = soks[-1].open
+        @t_price = [(soks[-1].close * (1-@z)).to_i, soks[-1].high].min
       end
     end
   end
