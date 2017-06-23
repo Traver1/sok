@@ -11,7 +11,7 @@ class SmaChart
     values =Soks.parse(soks, :open, :high, :low, :close)
     opens = values[0]
     aves = values[3].ave(3)
-    rsis = values[3].rsi(2)
+    rsis = values[3].ave(4)
 
     marks = Soks.new
     dates.zip(opens).each do |date, open|

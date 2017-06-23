@@ -5,10 +5,10 @@ include Kabu
 companies = Company.where("market = 'T'")
 codes = 0.step(companies.length-1, 10).map {|i|companies[i].code}
 exam = Examination2.new
-exam.from = Date.parse '20000101'
+exam.from = Date.parse '20070101'
 exam.to = Date.parse '20170501'
 strategies = codes.map do |c|
-  s = HvAdxAPb.new
+  s = Knife.new
   s.code = c
   s
 end
