@@ -17,7 +17,7 @@ class Command
     args["from"] = Date.parse args["from"]
     args["to"]   = Date.parse args["to"]
     codes  = args["code"] ? 
-      [args["code"]] : Kabu::KDb.read_codes
+      [args["code"]] : read_codes
     reader =  @yahoo
     codes.each do |code|
       code = code[0..3]
@@ -63,7 +63,42 @@ class Command
     end
   end
 
+	def company
+		count = 0
+		codes = read_codes
+		markets = read_markets
+		codes.zip(markets).each do |code, market|
+			com = Kabu::Company.new
+			com.code = code
+			com.market = market
+			count += com.save ? 1 : 0
+		end
+		puts "#{count}/#{codes.count}"
+	end
 end
+
+def read_codes
+	file = File.expand_path('../../assets/codes_20190914.csv', __FILE__)
+	ret = nil
+	File.open(file).each_line do |line|
+		ret = line.split(',').map do |code|
+			code.chomp
+		end
+	end
+	ret
+end
+
+def read_markets
+	file = File.expand_path('../../assets/markets_20190914.csv', __FILE__)
+	ret = nil
+	File.open(file).each_line do |line|
+		ret = line.split(',').map do |code|
+			code.chomp
+		end
+	end
+	ret
+end
+
 
 command = Command.new
 case ARGV.shift
@@ -75,6 +110,8 @@ when "update"
                              "codefrom:"))
 when "schedule"
   command.schedule
+when "company"
+	command.company
 else
 
 end

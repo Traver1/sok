@@ -1,3 +1,4 @@
+require File.expand_path('../kama_lama', __FILE__)
 module Kabu
 
   class KamaEmb < KamaLama

@@ -10,13 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170526235357) do
+ActiveRecord::Schema.define(version: 2019_09_14_100416) do
 
-  create_table "companies", force: :cascade do |t|
-    t.string "code", null: false
-    t.string "market", null: false
-    t.index ["code", "market"], name: "index_companies_on_code_and_market", unique: true
-  end
+# Could not dump table "companies" because of following StandardError
+#   Unknown type 'boolelan' for column 'target'
 
   create_table "soks", force: :cascade do |t|
     t.integer "company_id", null: false
@@ -30,10 +27,10 @@ ActiveRecord::Schema.define(version: 20170526235357) do
   end
 
   create_table "splits", force: :cascade do |t|
-    t.integer "sok_id", null: false
-    t.float "before", null: false
-    t.float "after", null: false
-    t.index ["sok_id"], name: "index_splits_on_sok_id", unique: true
+    t.integer "sok_id"
+    t.float "before"
+    t.float "after"
+    t.index ["sok_id"], name: "index_splits_on_sok_id"
   end
 
 end
